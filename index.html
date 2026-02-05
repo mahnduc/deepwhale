@@ -8,7 +8,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css">
   <style>
-    /* Đảm bảo biểu đồ có khoảng cách hợp lý và căn giữa */
     .mermaid {
       display: flex;
       justify-content: center;
@@ -24,7 +23,6 @@
   <script src="//cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
 
   <script>
-    // 2. Khởi tạo cấu hình Mermaid
     mermaid.initialize({
       startOnLoad: false,
       theme: 'base',
@@ -43,7 +41,6 @@
       alias: {
         '/.*/_sidebar.md': '/_sidebar.md'
       },
-      // 3. Renderer tùy chỉnh để Docsify không can thiệp vào mã nguồn Mermaid
       markdown: {
         renderer: {
           code: function (code, lang) {
@@ -60,17 +57,14 @@
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
 
   <script>
-    // 5. Plugin xử lý việc render lại Mermaid mỗi khi chuyển trang
     (function () {
       const mermaidPlugin = function (hook, vm) {
         hook.doneEach(function () {
-          // Xóa các thuộc tính data-processed để Mermaid vẽ lại từ đầu
           const elements = document.querySelectorAll('.mermaid');
           elements.forEach(el => {
             el.removeAttribute('data-processed');
           });
 
-          // Chạy lệnh render chính xác cho Mermaid v10
           mermaid.run({
             querySelector: '.mermaid'
           }).catch(err => console.error("Mermaid Error:", err));
