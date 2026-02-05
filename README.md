@@ -1,7 +1,4 @@
-# Self-Improve Agent
-
-## Tên dự án
-**Self-Improve Agent**
+# [StudyMind Agent](https://studymindagent.pages.dev/#/)
 
 ## Luồng hoạt động
 Người dùng thực hiện giao nhiệm vụ cho agent thông qua hình thức chat, agent sử dụng bộ tri thức được cung cấp bởi người dùng để thực hiện nhiệm vụ được giao.
