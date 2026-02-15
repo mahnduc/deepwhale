@@ -4,9 +4,26 @@
 
 <p align="center">
   <strong>
-    <a href="https://deepwhale.pages.dev/">GETTING STARTED</a> | 
-    <a href="https://deepwhale.pages.dev/docs/#/">DOCUMENTATION</a>
+    <a href="https://deepwhale.pages.dev/">BẮT ĐẦU</a> | 
+    <a href="https://deepwhale.pages.dev/docs/#/">TÀI LIỆU</a>
   </strong>
 </p>
 
-<!-- Download: [DeepWhale.msi](https://github.com/mahnduc/StudyMindAgent/releases/download/v0.1.0/agent-host_0.1.0_x64_en-US.msi) -->
+<div align="center">
+
+[![Platform: Windows](https://img.shields.io/badge/Platform-Windows-0078d7?style=flat-square&logo=windows)](https://github.com/mahnduc/StudyMindAgent)
+[![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-green?style=flat-square)](https://github.com/mahnduc/StudyMindAgent/releases/latest)
+
+</div>
+
+## CÀI ĐẶT
+
+Tải xuống nhanh: [deepwhale.msi](https://github.com/mahnduc/StudyMindAgent/releases/download/v0.1.0/agent-host_0.1.0_x64_en-US.msi)
+
+## RELEASES
+Xem tất cả các bản phát hành khác [tại đây](https://github.com/mahnduc/StudyMindAgent/releases)
+
+| Phiên bản | Ngày phát hành | Mô tả | Nền tảng | MSI|
+|:-|:-|:-|:-|:-|
+|v0.1.0|15-02-2025|Bản thử nghiệm|Window | [v0.1.0](https://github.com/mahnduc/StudyMindAgent/releases/download/v0.1.0/agent-host_0.1.0_x64_en-US.msi)|
+
