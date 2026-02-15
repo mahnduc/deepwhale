@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>DeepWhale - Documentation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/dark.css">
+
+  <style>
+    /* --- CUSTOM THEME CARBON DARK --- */
+    :root {
+      --docsifytabs-border-color: #27272A;
+      --docsifytabs-tab-background: #18181B;
+    }
+
+    body {
+      background-color: #18181B !important;
+      color: #FAFAFA !important;
+    }
+
+    .sidebar {
+      background-color: #18181B !important;
+      border-right: 1px solid #27272A !important;
+      color: #A1A1AA !important;
+    }
+
+    .sidebar-nav li a {
+      color: #A1A1AA !important;
+    }
+
+    .sidebar-nav li a:hover {
+      color: #22D3EE !important;
+    }
+
+    .sidebar-nav li.active>a {
+      color: #22D3EE !important;
+      border-right: 2px solid #22D3EE !important;
+      font-weight: bold;
+    }
+
+    .sidebar-toggle {
+      background: transparent !important;
+      bottom: 0 auto !important;
+      top: auto !important;
+      left: 0;
+      padding: 20px !important;
+      width: auto !important;
+    }
+
+    /*3 thanh ngang*/
+    .sidebar-toggle span {
+      background-color: #22D3EE !important;
+      height: 2px !important;
+      width: 25px !important;
+      margin-bottom: 5px !important;
+    }
+
+    .content {
+      background-color: #18181B !important;
+    }
+
+    section.content h1,
+    section.content h2,
+    section.content h3 {
+      color: #FAFAFA !important;
+    }
+
+    section.content,
+    section.content p,
+    section.content li,
+    section.content table,
+    section.content span:not([style]) {
+      color: #FAFAFA !important;
+    }
+
+    section.content a {
+      color: #22D3EE !important;
+      font-weight: 600;
+    }
+
+    .markdown-section strong {
+      color: #22D3EE !important;
+    }
+
+    code,
+    pre {
+      background-color: #27272A !important;
+      color: #A78BFA !important;
+      border-radius: 4px;
+    }
+
+    .markmap,
+    .mermaid {
+      background: #27272A !important;
+      border: 1px solid #3F3F46 !important;
+      border-radius: 12px;
+      padding: 10px;
+      margin: 20px 0;
+    }
+
+    .markmap svg {
+      width: 100%;
+      height: 400px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #27272A;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #22D3EE;
+    }
+
+    .search input {
+      background: #27272A !important;
+      border: 1px solid #3F3F46 !important;
+      color: #FAFAFA !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">Loading DeepWhale Docs...</div>
+
+  <script src="//cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="//cdn.jsdelivr.net/npm/markmap-lib@0.15.4/dist/browser/index.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/markmap-view@0.15.4/dist/browser/index.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+  <script>
+    // Khởi tạo Mermaid với theme Dark
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#22D3EE',
+        primaryTextColor: '#FAFAFA',
+        lineColor: '#A78BFA'
+      }
+    });
+
+    window.$docsify = {
+      name:
+        `<div style="display: flex; align-items: center; gap: 12px; font-weight: 900; letter-spacing: -0.05em; justify-content: center; width: 100%;">
+        <div style="padding: 2px; background: linear-gradient(135deg, #22D3EE, #A78BFA); border-radius: 8px; display: flex; flex-shrink: 0;">
+          <div style="background: #18181B; border-radius: 6px; padding: 4px; display: flex;">
+            <img src="../assets/logo.png" style="width: 24px; height: 24px; object-fit: contain;">
+          </div>
+        </div>
+        <span style="font-style: italic; font-size: 1.25rem; color: #FAFAFA; white-space: nowrap;">
+          DEEP<span style="color: #22D3EE; font-style: normal; text-transform: uppercase; margin-left: 2px;">whale</span>
+        </span>
+      </div>`,
+      repo: 'https://github.com/mahnduc/deepwhale',
+      loadSidebar: true,
+      subMaxLevel: 2,
+      auto2top: true,
+      themeColor: '#22D3EE',
+      basePath: './',
+      relativeURLs: true,
+      alias: {
+        '/.*/_sidebar.md': '/_sidebar.md'
+      },
+      markdown: {
+        renderer: {
+          code: function (code, lang) {
+            if (lang === "markmap") {
+              return `<div class="markmap">${code}</div>`;
+            }
+            if (lang === "mermaid") {
+              return `<div class="mermaid">${code}</div>`;
+            }
+            return this.origin.code.apply(this, arguments);
+          }
+        }
+      },
+
+      plugins: [
+        function (hook, vm) {
+          hook.doneEach(function () {
+            // Xử lý Mermaid
+            if (window.mermaid) {
+              mermaid.run({ querySelector: '.mermaid' }).catch(err => { });
+            }
+
+            // Xử lý Markmap
+            const markmaps = document.querySelectorAll('.markmap');
+            markmaps.forEach(el => {
+              const content = el.textContent.trim();
+              el.innerHTML = '<svg></svg>';
+              const svg = el.querySelector('svg');
+
+              try {
+                const mlib = window.markmap;
+                if (mlib && mlib.Transformer) {
+                  const transformer = new mlib.Transformer();
+                  const { root } = transformer.transform(content);
+                  mlib.Markmap.create(svg, {
+                    color: (node) => node.depth <= 1 ? '#22D3EE' : '#A78BFA',
+                  }, root);
+                }
+              } catch (e) {
+                console.error("Markmap Render error:", e);
+              }
+            });
+          });
+        }
+      ]
+    };
+  </script>
+  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+</body>
+
+</html>
