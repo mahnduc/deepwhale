@@ -1,0 +1,48 @@
+<svg width="700" height="550" viewBox="0 0 700 550" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="700" height="550" rx="8" fill="#1a1b26"/>
+
+  <g transform="translate(275, 40)">
+    <text x="75" y="20" fill="#bb9af7" font-family="Segoe UI, sans-serif" font-weight="bold" text-anchor="middle">Upstream</text>
+    <rect x="0" y="30" width="150" height="150" rx="4" stroke="#bb9af7" stroke-width="2" fill="#bb9af7" fill-opacity="0.05"/>
+    
+    <rect x="35" y="50" width="80" height="35" rx="2" stroke="#bb9af7" stroke-width="1.5" fill="#bb9af7" fill-opacity="0.1"/>
+    <text x="75" y="73" fill="#c0caf5" font-family="Segoe UI, sans-serif" font-size="12" text-anchor="middle">TAO</text>
+    
+    <path d="M75 125 L75 95 M71 100 L75 95 L79 100" stroke="#bb9af7" stroke-width="2" stroke-dasharray="4 2"/>
+    
+    <rect x="35" y="130" width="80" height="35" rx="2" stroke="#bb9af7" stroke-width="1.5" fill="#bb9af7" fill-opacity="0.1"/>
+    <text x="75" y="153" fill="#c0caf5" font-family="Segoe UI, sans-serif" font-size="12" text-anchor="middle">WRY</text>
+  </g>
+
+  <path d="M350 240 L350 200 M346 210 L350 200 L354 210" stroke="#bb9af7" stroke-width="2" stroke-dasharray="4 2"/>
+
+  <g transform="translate(50, 250)">
+    <text x="300" y="20" fill="#bb9af7" font-family="Segoe UI, sans-serif" font-weight="bold" text-anchor="middle">Core</text>
+    <rect x="0" y="30" width="600" height="260" rx="4" stroke="#bb9af7" stroke-width="2" fill="#bb9af7" fill-opacity="0.05"/>
+    
+    <rect x="20" y="60" width="110" height="40" rx="2" stroke="#bb9af7" stroke-width="1.5" fill="#bb9af7" fill-opacity="0.1"/>
+    <text x="75" y="85" fill="#c0caf5" font-family="Segoe UI, sans-serif" font-size="12" text-anchor="middle">tauri-build</text>
+    
+    <rect x="150" y="60" width="110" height="40" rx="2" stroke="#bb9af7" stroke-width="1.5" fill="#bb9af7" fill-opacity="0.1"/>
+    <text x="205" y="85" fill="#c0caf5" font-family="Segoe UI, sans-serif" font-size="12" text-anchor="middle">tauri-codegen</text>
+    
+    <rect x="280" y="60" width="130" height="40" rx="2" stroke="#bb9af7" stroke-width="1.5" fill="#bb9af7" fill-opacity="0.1"/>
+    <text x="345" y="85" fill="#c0caf5" font-family="Segoe UI, sans-serif" font-size="12" text-anchor="middle">tauri-runtime-wry</text>
+
+    <path d="M345 135 L345 105 M341 115 L345 105 L349 115" stroke="#bb9af7" stroke-width="2" stroke-dasharray="4 2"/>
+
+    <g transform="translate(250, 150)">
+      <rect x="0" y="0" width="330" height="90" rx="2" stroke="#bb9af7" stroke-width="1.5" fill="#bb9af7" fill-opacity="0.1"/>
+      <text x="320" y="-10" fill="#bb9af7" font-family="Segoe UI, sans-serif" font-size="14" font-style="italic" text-anchor="end">tauri</text>
+      
+      <rect x="15" y="25" width="90" height="40" rx="2" stroke="#bb9af7" stroke-width="1" fill="#bb9af7" fill-opacity="0.1"/>
+      <text x="60" y="50" fill="#c0caf5" font-family="Segoe UI, sans-serif" font-size="11" text-anchor="middle">tauri-runtime</text>
+      
+      <rect x="120" y="25" width="90" height="40" rx="2" stroke="#bb9af7" stroke-width="1" fill="#bb9af7" fill-opacity="0.1"/>
+      <text x="165" y="50" fill="#c0caf5" font-family="Segoe UI, sans-serif" font-size="11" text-anchor="middle">tauri-macros</text>
+      
+      <rect x="225" y="25" width="90" height="40" rx="2" stroke="#bb9af7" stroke-width="1" fill="#bb9af7" fill-opacity="0.1"/>
+      <text x="270" y="50" fill="#c0caf5" font-family="Segoe UI, sans-serif" font-size="11" text-anchor="middle">tauri-utils</text>
+    </g>
+  </g>
+</svg>
