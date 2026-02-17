@@ -80,7 +80,7 @@
       </div>
 
       <div class="subgraph">
-        <div class="subgraph-title">[app]/backend-python - Logic Gốc</div>
+        <div class="subgraph-title">[app]/backend-python</div>
         <div class="node-group">
           <div class="node python">Source code .py</div>
           <div class="node python">PyInstaller</div>

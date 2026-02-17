@@ -1,4 +1,6 @@
 * [Tổng quan](/)
 * [Kiến trúc ứng dụng và luồng dữ liệu](architecture-dataflow.md)
+* [Sidecar Python và MCP](sidecar_python.md)
 * [Các bản phân phối](releases.md)
 * [Chủ đề](theme.md)
+* [Tham khảo](references.md)
