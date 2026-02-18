@@ -1,5 +1,6 @@
 * [Tổng quan](/)
 * [Kiến trúc ứng dụng và luồng dữ liệu](architecture-dataflow.md)
+* [Tương tác giữa tầng giao diện và tầng điều phối](frontend-rush.md)
 * [Sidecar Python và MCP](sidecar_python.md)
 * [Các bản phân phối](releases.md)
 * [Chủ đề](theme.md)

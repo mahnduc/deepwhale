@@ -3,7 +3,7 @@
 
 ## Khái niệm cốt lõi của MCP
 `Resources`: *Các dữ liệu dạng tệp mà client có thể đọc được (như phản hồi từ API hoặc nội dung tệp tin).*   
-`Tools`: *Các hàm (functions) mà mô hình ngôn ngữ lớn (LLM) có thể gọi thực thi (sau khi được người dùng chấp thuận).*
+`Tools`: *Các hàm (functions) mà mô hình ngôn ngữ lớn (LLM) có thể gọi thực thi (sau khi được người dùng chấp thuận).*  
 `Prompts`: *Các mẫu (templates) được viết sẵn giúp người dùng hoàn thành các tác vụ cụ thể một cách dễ dàng hơn.*
 
 ## Logging trong MCP Server
@@ -51,7 +51,7 @@ uv add mcp[cli] httpx
 # Create our server file
 new-item server.py
 ```
-## Xây dựng server của bản
+## Xây dựng server của bạn
 
 ### Khai báo thư viện và thiết lập đối tượng
 

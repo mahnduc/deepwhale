@@ -19,11 +19,6 @@
 ## Tech stack
 <img src="https://skillicons.dev/icons?i=tauri,react,typescript,rust,python&theme=dark" />
 
-## Kiến trúc ứng dụng
-<p align="center">
-  <img src="assets/architecture_app.svg" alt="DeepWhale Banner" width="600">
-</p>
-
 ## Cài đặt nhanh
 Tải xuống nhanh: [deepwhale.msi](https://github.com/mahnduc/StudyMindAgent/releases/download/v0.1.0/agent-host_0.1.0_x64_en-US.msi)
 
