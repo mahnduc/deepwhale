@@ -1,4 +1,5 @@
 * [Tổng quan](/)
+* [Hello World](tutorial/hello-world.md)
 * [Kiến trúc ứng dụng và luồng dữ liệu](architecture-dataflow.md)
 * [Tương tác giữa tầng giao diện và tầng điều phối](frontend-rush.md)
 * [Sidecar Python và MCP](sidecar_python.md)
