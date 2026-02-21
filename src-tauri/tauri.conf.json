@@ -12,10 +12,21 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "app",
         "width": 1280,
         "height": 720,
-        "center": true
+        "center": true,
+        "visible": false
+      },
+      {
+        "label": "splashscreen",
+        "title": "Đang khởi động...",
+        "width": 600,
+        "height": 500,
+        "decorations": false,
+        "center": true,
+        "url": "splashscreen.html"
       }
     ],
     "security": {

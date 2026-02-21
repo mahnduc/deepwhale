@@ -5,6 +5,7 @@ use std::sync::Arc;
 use tokio::sync::{Mutex, oneshot};
 use std::collections::HashMap;
 use serde::Serialize;
+use tauri::{Manager};
 
 #[derive(Serialize)]
 struct JsonRpcRequest {
@@ -66,6 +67,19 @@ async fn call_mcp(
     }
 }
 
+// tạo splash screen
+#[tauri::command]
+async fn close_splashscreen(app: tauri::AppHandle) {
+    // Lấy cửa sổ chính
+    let main_window = app.get_webview_window("main").unwrap();
+    // Lấy cửa sổ splashscreen
+    let splash_window = app.get_webview_window("splashscreen").unwrap();
+
+    // Hiện main và đóng splash
+    main_window.show().unwrap();
+    splash_window.close().unwrap();
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let child_arc = Arc::new(Mutex::new(None));
@@ -122,7 +136,8 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![call_mcp])
+        // đăng ký command
+        .invoke_handler(tauri::generate_handler![call_mcp, close_splashscreen])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

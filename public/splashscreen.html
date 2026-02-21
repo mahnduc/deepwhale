@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    :root {
+      /* Bảng màu Fluent UI */
+      --neutralPrimary: #242424;    /* Màu chữ chính */
+      --neutralSecondary: #616161;  /* Màu chữ phụ */
+      --brandLink: #0078d4;         /* Màu xanh Blue đặc trưng */
+      --neutralLighter: #f3f2f1;    /* Màu nền nhẹ */
+      --white: #ffffff;
+    }
+
+    /* Chế độ tối (Dark Mode) cho Splash - phù hợp với app chính của bạn */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --neutralPrimary: #ffffff;
+        --neutralSecondary: #adadad;
+        --neutralLighter: #202020;
+        --white: #1b1b1b;
+      }
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: var(--white); /* Nền đồng bộ với Fluent */
+      color: var(--neutralPrimary);
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    .app-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .status-text {
+      font-size: 13px;
+      color: var(--neutralSecondary);
+      margin-top: 16px;
+    }
+
+    /* Vòng xoay (Spinner) phong cách Fluent UI */
+    .spinner {
+      width: 28px;
+      height: 28px;
+      margin: 0 auto;
+      border: 3px solid var(--neutralLighter);
+      border-top: 3px solid var(--brandLink);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="app-title">Hello World!</div>
+    <div class="spinner"></div>
+    <div class="status-text">Đang đăng nhập thế giới...</div>
+  </div>
+
+</body>
+</html>

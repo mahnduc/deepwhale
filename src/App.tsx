@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
 interface McpResponse {
@@ -16,6 +16,20 @@ function App() {
   const [input, setInput] = useState("");
   const [result, setResult] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const closeSplash = async () => {
+      try {
+        setTimeout(async () => {
+          await invoke("close_splashscreen");
+        }, 500);
+      } catch (err) {
+        console.error("Lỗi khi đóng splashscreen:", err);
+      }
+    };
+
+    closeSplash();
+  }, []); 
 
   const callMcpTool = async () => {
     if (!input.trim() || isLoading) return;
@@ -62,7 +76,7 @@ function App() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && callMcpTool()}
                 placeholder="e.g. [your name]"
-                className="w-full px-3 py-2 bg-fluent-card dark:bg-[#323232] border-b-2 border-[#8a8a8a] focus:border-fluent-blue outline-none transition-colors duration-150 text-sm rounded-t"
+                className="w-full px-3 py-2 bg-white dark:bg-[#323232] border-b-2 border-[#8a8a8a] focus:border-fluent-blue outline-none transition-colors duration-150 text-sm rounded-t"
                 disabled={isLoading}
               />
             </div>
@@ -71,7 +85,7 @@ function App() {
               <button
                 onClick={callMcpTool}
                 disabled={isLoading || !input}
-                className="px-6 py-1.5 bg-fluent-blue hover:bg-[#106ebe] active:bg-[#005a9e] disabled:bg-[#cccccc] dark:disabled:bg-[#333333] text-white text-sm font-medium rounded transition-all shadow-[0_2px_4px_rgba(0,120,212,0.2)]"
+                className="px-6 py-1.5 bg-[#0078d4] hover:bg-[#106ebe] active:bg-[#005a9e] disabled:bg-[#cccccc] dark:disabled:bg-[#333333] text-white text-sm font-medium rounded transition-all shadow-[0_2px_4px_rgba(0,120,212,0.2)]"
               >
                 {isLoading ? "Executing..." : "Invoke Tool"}
               </button>
@@ -88,10 +102,10 @@ function App() {
               <div className="w-2.5 h-2.5 rounded-full bg-[#76ff7d]/20 border border-[#28ea31]" />
               <span className="text-[10px] text-[#616161] dark:text-[#adadad] font-mono">STDOUT</span>
             </div>
-            <div className="p-4 min-h-37.5 font-mono text-sm leading-relaxed">
+            <div className="p-4 min-h-[150px] font-mono text-sm leading-relaxed">
               {result ? (
                 <div className="animate-in fade-in slide-in-from-top-1 duration-300">
-                  <span className="text-fluent-blue mr-2">»</span>
+                  <span className="text-[#0078d4] mr-2">»</span>
                   {result}
                 </div>
               ) : (
