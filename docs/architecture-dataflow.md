@@ -1,24 +1,7 @@
-# [KIẾN TRÚC](https://v2.tauri.app/concept/architecture/) CỦA TAURI
-
-![Tauri Architecture](../assets/architecture_tauri.svg)
-
-### Cơ chế giao tiếp "The Bright" (Cầu nối)
-
-|Chiều giao tiếp|Cơ chế|Giải thích|
-|:-|:-|:-|
-|`Frontend → Backend`|Commands|Frontend gọi một hàm Rust (ví dụ: invoke('greet')). Lớp tauri-codegen và tauri-runtime sẽ chuyển yêu cầu này xuống Rust.|
-|`Backend → Frontend`|Events|Rust gửi một sự kiện (Event) lên Frontend. tauri-runtime-wry sẽ đẩy thông tin qua WebView để JavaScript bắt được.|
-
-### Nguyên tắc bảo mật tối đa
-
->Cách ly: *Frontend chạy trong môi trường bị giới hạn. Nó không thể tự ý xóa file trên ổ cứng của bạn.*
-
->Kiểm soát: *Muốn làm gì đó liên quan đến hệ thống, Frontend phải "xin phép" Backend thông qua các Command đã được lập trình viên định nghĩa sẵn trong tầng tauri-runtime.*
-
->Hiệu năng: *Tầng Upstream (TAO/WRY) giúp ứng dụng tận dụng tối đa tài nguyên sẵn có của hệ điều hành mà không cần gánh thêm một bộ engine nặng nề.*
-
 # KIẾN TRÚC TỔNG THỂ ỨNG DỤNG
-![app](../assets/architecture_app.svg)
+<div align="center">
+  <img src="../assets/app-architecture.png" style="border-radius: 16px" alt="My Image">
+</div>
 
 ## Phân tầng ứng dụng
 

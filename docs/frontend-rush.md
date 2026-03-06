@@ -53,6 +53,7 @@ fn my_custom_command() {
 ```
 >Tên command phải là độc nhất
 >Các Command được định nghĩa trong file lib.rs không thể đánh dấu là pub (công khai) do một hạn chế trong quá trình tự động tạo mã liên kết (glue code generation). Bạn sẽ thấy một lỗi tương tự như thế này nếu bạn đánh dấu nó là một hàm công khai (public function)
+
 ```python 
 error[E0255]: the name `__cmd__command_name` is defined multiple times
   --> src/lib.rs:28:8
