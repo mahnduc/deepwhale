@@ -1,7 +1,6 @@
 * [Tổng quan](/)
 * [Kiến trúc ứng dụng và luồng dữ liệu](architecture-dataflow.md)
-* [Tương tác giữa tầng giao diện và tầng điều phối](frontend-rush.md)
-* [Sidecar Python và MCP](sidecar_python.md)
+* [MCP Server - Sidecar cho Tauri](sidecar-with-python-mcp-server.md)
 * [Logging system](engine/log.md)
 * [Các bản phân phối](releases.md)
 * [Tham khảo](references.md)
