@@ -33,11 +33,11 @@ py main.py
 ```json minified
 {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"my-cli","version":"1.0.0"}}}
 ```
-**Bước 3:** Gửi gói tin xác nhận  
+<!-- **Bước 3:** Gửi gói tin xác nhận  
 ```json minified
 {"jsonrpc":"2.0","method":"notifications/initialized","params":{}}
-```
-**Bước 4:** Gọi tool (Tool Call)  
+``` -->
+**Bước 3:** Gọi tool (Tool Call)  
 *ví dụ: gọi đến tool send_chat_message để gửi đến một tin nhắn*
 ```json minified
 {"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"send_chat_message","arguments":{"user_name":"UserCLI","message":"Chào server, tôi đã kết nối thành công!","room":"General"}}}
