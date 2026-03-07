@@ -112,3 +112,110 @@ docker ps
 4. Ở cột bên phải, phần Visualization, hãy chọn Logs.
 
 5. Nhấn Save ở góc trên bên phải.
+
+---
+
+## **Hướng dẫn sử dụng Log**
+
+#### **Giới thiệu**
+Hệ thống logging của dự án được cấu hình tập trung trong: `engine/logs/config.py`  
+
+Logging được thiết kế theo các mục tiêu:
+- Ghi log dạng JSON structured để dễ phân tích
+- Tương thích với Grafana Loki
+- Phân tách application log và error log
+- Hỗ trợ log rotation để tránh file quá lớn
+
+Tất cả log sẽ được lưu tại: `%LOCALAPPDATA%/<APP_NAME>/logs/`  
+Ví dụ: `C:\Users\<user>\AppData\Local\MCPServer\logs\`  
+Các file log bao gồm:
+- **app.json**
+- **error.json**
+
+#### Khởi tạo Logging
+Logging được khởi tạo bằng hàm:
+```python
+setup_global_logging(app_name="YourAppName")
+```
+*ví dụ:*
+```python
+# main.py
+from engine.logs.config import setup_global_logging
+
+setup_global_logging("MCPServer")
+```
+
+>Chỉ cần gọi một lần duy nhất khi ứng dụng khởi động. Sau khi khởi tạo tất cả module trong project đều có thể sử dụng logging.
+
+#### **Sử dụng Logger trong Module**
+
+Trong mỗi module, tạo logger bằng:
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+```
+*ví dụ:*
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+def start_service():
+    logger.info("Service started")
+```
+**`__name__`**: giúp xác định module tạo log.
+
+#### **Các cấp độ Log**
+|**Level** | **Mục đích**                   |
+| -------- | ---------------------------------- |
+| `DEBUG`    | Thông tin debug                    |
+| `INFO`     | Hoạt động bình thường của hệ thống |
+| `WARNING`  | Cảnh báo                           |
+| `ERROR`    | Lỗi xử lý                          |
+| `CRITICAL` | Lỗi nghiêm trọng                   |
+
+*ví dụ:*
+```python
+logger.debug("Debug message")
+logger.info("Service started")
+logger.warning("Low memory warning")
+logger.error("Database connection failed")
+logger.critical("System crash")
+```
+
+#### **Logging với Metadata**
+
+Hệ thống hỗ trợ structured logging bằng tham số `extra`.
+
+```python
+logger.info(
+    "User login",
+    extra={
+        # extra info
+    }
+)
+```
+
+#### **Logging Exception**
+Trong hệ thống logging của dự án, hai phương thức thường được dùng để ghi log khi xảy ra lỗi:
+- `logger.error()`
+- `logger.exception()`
+
+**`logger.error()`**  
+*dùng để ghi lại một lỗi xảy ra trong hệ thống, nhưng không tự động ghi stack trace của exception*
+
+**`logger.error()` với stack trace**
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+try:
+    value = int("abc")
+except Exception:
+    logger.exception("Invalid number", exc_info=True)
+```
+
+**`logger.exception()`**
+*được dùng để ghi log khi xảy ra exception trong khối try/except*
