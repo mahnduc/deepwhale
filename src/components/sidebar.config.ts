@@ -16,11 +16,11 @@ export const menuItems = [
   //   label: "Kho tri thức",
   //   icon: Database,
   // },
-  {
-    href: "/knowledge-base/markdown-page",
-    label: "Tài liệu",
-    icon: BookText,
-  },
+  // {
+  //   href: "/knowledge-base/markdown-page",
+  //   label: "Tài liệu",
+  //   icon: BookText,
+  // },
   {
     href: "/tools",
     label: "Công cụ",

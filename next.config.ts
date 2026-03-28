@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   output: 'export', 
-  basePath: '/studyMind', //tên repo 
+  basePath: '/deepwhale', //tên repo 
   images: {
     unoptimized: true,
   },

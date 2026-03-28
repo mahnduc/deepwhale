@@ -17,7 +17,7 @@ export default function ApiKeyManager() {
 
     const FILE_PATH = "agent/api-key";
 
-    // 1. Xử lý đọc dữ liệu từ OPFS
+    // Xử lý đọc dữ liệu từ OPFS
     const loadApiKeys = async () => {
         try {
             setLoading(true);
@@ -50,7 +50,7 @@ export default function ApiKeyManager() {
         }
     };
 
-    // 2. Xử lý lưu dữ liệu vào OPFS
+    // Xử lý lưu dữ liệu vào OPFS
     const saveApiKeys = async (updatedKeys: ApiKeyEntry[]) => {
         try {
             const root = await navigator.storage.getDirectory();
@@ -112,7 +112,7 @@ export default function ApiKeyManager() {
                         <input 
                             type="password" 
                             placeholder="Nhập API Key..." 
-                            className="input input-bordered flex-[2]"
+                            className="input input-bordered flex-2"
                             value={newKey}
                             onChange={(e) => setNewKey(e.target.value)}
                         />

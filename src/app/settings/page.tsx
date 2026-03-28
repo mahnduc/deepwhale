@@ -38,22 +38,19 @@ function Settings() {
   const [theme, setTheme] = useState("coffee");
 
   useEffect(() => {
-    const match = document.cookie.match(/theme=([^;]+)/);
-    const savedTheme = match ? match[1] : "coffee";
-
+    const savedTheme = localStorage.getItem("theme") || "light";
     setTheme(savedTheme);
-    document.documentElement.setAttribute("data-theme", savedTheme);
   }, []);
 
   const handleChangeTheme = (newTheme: string) => {
     setTheme(newTheme);
-    document.cookie = `theme=${newTheme}; path=/; max-age=31536000`;
+    localStorage.setItem("theme", newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
   };
 
   return (
-    <div className="max-w-md space-y-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
+    <div className="max-w-md space-y-6 p-4">
+      <h1 className="text-2xl font-bold text-base-content">Settings</h1>
 
       <div className="form-control">
         <label className="label">
@@ -67,7 +64,7 @@ function Settings() {
         >
           {themes.map((t) => (
             <option key={t} value={t}>
-              {t}
+              {t.charAt(0).toUpperCase() + t.slice(1)}
             </option>
           ))}
         </select>
