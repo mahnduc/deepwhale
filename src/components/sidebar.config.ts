@@ -1,4 +1,4 @@
-import { LayoutDashboard, User, Mail, Settings, Folder, BookText, Database, Wrench } from "lucide-react";
+import { LayoutDashboard, User, Mail, Settings, Folder, BookText, Database, Wrench, BotMessageSquare } from "lucide-react";
 
 export const menuItems = [
   {
@@ -25,6 +25,11 @@ export const menuItems = [
     href: "/tools",
     label: "Công cụ",
     icon: Wrench,
+  },
+  {
+    href: "/chats",
+    label: "Trò chuyện",
+    icon: BotMessageSquare,
   },
 ];
 

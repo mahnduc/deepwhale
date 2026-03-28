@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<p align="center">
+  <img src="public/banner.svg" alt="DeepWhale Banner" width="800">
+</p>
 
-## Getting Started
+<p align="center">
+  <strong>
+    <a href="https://mahnduc.github.io/deepwhale/">BẮT ĐẦU</a> | 
+    <a href="https://deepwhale.pages.dev/docs/#/">TÀI LIỆU</a>
+  </strong>
+</p>
 
-First, run the development server:
+<div align="center">
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+[![Platform: Windows](https://img.shields.io/badge/Platform-Windows-0078d7?style=flat-square&logo=windows)](https://github.com/mahnduc/StudyMindAgent)
+[![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-green?style=flat-square)](https://github.com/mahnduc/StudyMindAgent/releases/latest)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+</div>
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Giới thiệu
+Chúng tôi mang đến công cụ biến tài liệu học tập của bạn trở thành một khóa học trực tuyến thay cho những trang giấy nhiều chữ
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+<!-- ## Bắt đầu
 
-## Learn More
+## Tech stack
+<img src="https://skillicons.dev/icons?i=nextjs,typescript,python&theme=dark" /> -->
 
-To learn more about Next.js, take a look at the following resources:
+## Người đóng góp
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+<a href="https://github.com/mahnduc/deepwhale/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=mahnduc/deepwhale" />
+</a>
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+*Rất hoan nghênh mọi sự đóng góp từ cộng đồng! Nếu bạn muốn tham gia, hãy xem qua [Hướng dẫn đóng góp](CONTRIBUTING.md).*
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
