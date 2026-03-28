@@ -1,20 +1,17 @@
+import ThemeProvider from "@/components/ThemeProvider";
 import "./globals.css";
 import Sidebar from "@/components/sidebar";
-import { cookies } from "next/headers";
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const theme = cookieStore.get("theme")?.value || "light";
-
   return (
-    <html lang="en" data-theme={theme}>
+    <html lang="en"> 
       <body className="flex h-screen overflow-hidden">
+        <ThemeProvider />
         <Sidebar />
-
         <main className="flex-1 overflow-y-auto bg-base-100 p-8">
           {children}
         </main>
