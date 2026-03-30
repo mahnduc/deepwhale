@@ -11,8 +11,6 @@
 
 <div align="center">
 
-[![Platform: Windows](https://img.shields.io/badge/Platform-Windows-0078d7?style=flat-square&logo=windows)](https://github.com/mahnduc/StudyMindAgent)
-[![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-green?style=flat-square)](https://github.com/mahnduc/StudyMindAgent/releases/latest)
 
 </div>
 

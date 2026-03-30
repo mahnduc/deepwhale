@@ -1,4 +1,16 @@
-import { LayoutDashboard, User, Mail, Settings, Folder, BookText, Database, Wrench, BotMessageSquare } from "lucide-react";
+import {
+  LayoutDashboard,
+  User,
+  Mail,
+  Settings,
+  Folder,
+  BookText,
+  Database,
+  Wrench,
+  BotMessageSquare,
+  BookAIcon,
+  Share2,
+} from "lucide-react";
 
 export const menuItems = [
   {
@@ -11,26 +23,21 @@ export const menuItems = [
   //   label: "OPFSExplorer",
   //   icon: Folder,
   // },
-  // {
-  //   href: "/knowledge-base",
-  //   label: "Kho tri thức",
-  //   icon: Database,
-  // },
-  // {
-  //   href: "/knowledge-base/markdown-page",
-  //   label: "Tài liệu",
-  //   icon: BookText,
-  // },
   {
     href: "/tools",
     label: "Công cụ",
     icon: Wrench,
   },
   {
-    href: "/chats",
+    href: "/agents",
     label: "Trò chuyện",
     icon: BotMessageSquare,
   },
+  {
+    href: "/courses",
+    label: "Bài học",
+    icon: Share2,
+  }
 ];
 
 export const bottomMenuItems = [

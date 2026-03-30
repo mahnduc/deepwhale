@@ -12,7 +12,7 @@ const AVATAR_STYLES = [
 ];
 
 interface AgentData {
-  id: string;
+  agent_id: string;
   name: string;
   description: string;
   avatarUrl: string;
@@ -87,7 +87,7 @@ export default function CreateNewAgent() {
 
     setIsSaving(true);
     const newAgent: AgentData = {
-      id: crypto.randomUUID(),
+      agent_id: crypto.randomUUID(),
       name: name.trim(),
       description,
       avatarUrl,
@@ -99,7 +99,7 @@ export default function CreateNewAgent() {
     const success = await saveToSingleFileOPFS(newAgent);
     
     if (success) {
-      router.push('/chats');
+      router.push('/agents');
       router.refresh();
     } else {
       alert("Lỗi lưu trữ dữ liệu vào OPFS!");
