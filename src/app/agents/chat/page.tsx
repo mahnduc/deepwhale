@@ -160,7 +160,7 @@ function ChatContent() {
                         <div className={`flex gap-3 max-w-[80%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                             
                             {/* Avatar Icon */}
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 bg-base-200 ${neoFlat}`}>
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-base-200 ${neoFlat}`}>
                                 {m.role === 'user' ? <User size={14} /> : <Bot size={14} className="text-primary" />}
                             </div>
 
@@ -195,7 +195,7 @@ function ChatContent() {
 
             {/* --- Input Area --- */}
             <footer className="p-6 bg-base-200">
-                <form onSubmit={sendMessage} className={`relative flex items-center p-2 rounded-[2rem] bg-base-200 ${neoInset}`}>
+                <form onSubmit={sendMessage} className={`relative flex items-center p-2 rounded-4xl bg-base-200 ${neoInset}`}>
                     <div className="pl-4 text-primary/30">
                         <Hash size={18} />
                     </div>

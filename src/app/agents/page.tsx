@@ -43,7 +43,7 @@ export default function AgentDirectory() {
     }
     fetchAgents();
   }, []);
-  console.log(agents)
+  
   return (
     <div className="min-h-screen bg-base-200 p-8 text-base-content transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
