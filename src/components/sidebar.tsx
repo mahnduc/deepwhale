@@ -53,7 +53,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       </div>
 
       {/* TOP MENU */}
-      <nav className="flex-1 overflow-y-auto py-4 overflow-x-hidden no-scrollbar">
+      <nav className="flex-1 overflow-y-auto py-4 overflow-x-hidden no-scrollbar scrollbar-hide">
         {!isCollapsed && (
           <label className="text-[10px] font-black opacity-30 uppercase ml-4 mb-6 block tracking-[0.3em] text-base-content whitespace-nowrap">
             Main Menu

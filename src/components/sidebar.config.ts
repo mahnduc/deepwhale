@@ -10,6 +10,7 @@ import {
   BotMessageSquare,
   BookAIcon,
   Share2,
+  Users,
 } from "lucide-react";
 
 export const menuItems = [
@@ -37,7 +38,12 @@ export const menuItems = [
     href: "/courses",
     label: "Bài học",
     icon: Share2,
-  }
+  },
+  {
+    href: "/communities",
+    label: "Cộng đồng",
+    icon: Users,
+  },
 ];
 
 export const bottomMenuItems = [
