@@ -100,12 +100,12 @@ export default function CourseManager() {
 
   // Launch course
   const launchCourse = (id: string) => {
-    // Đảm bảo basePath không bị lặp dấu //
-    const cleanBasePath = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
-    const url = `${cleanBasePath}/@opfs/docsify/courses/${id}/index.html`;
+    // Chúng ta mở một đường dẫn CỐ ĐỊNH mà chúng ta biết SW sẽ bắt được
+    // Thêm dấu '/' ở cuối nếu bạn bật trailingSlash: true trong next.config
+    const url = `/deepwhale/@opfs/docsify/courses/${id}/index.html`;
 
-    console.log("Opening course at:", url); // Kiểm tra log này trên Production
-    window.open(url, "_blank");
+    const newWindow = window.open(url, "_blank");
+    if (!newWindow) alert("Vui lòng cho phép mở popup!");
   };
 
   return (

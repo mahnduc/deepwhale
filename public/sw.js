@@ -1,69 +1,61 @@
+// public/sw.js
+const BASE_PATH = '/deepwhale'; // Khớp với repo name của bạn
+
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(clients.claim()));
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
+  // Chỉ bắt các request có định danh @opfs
   if (url.pathname.includes('/@opfs/')) {
-    event.respondWith(handleOPFSRequest(url.pathname));
+    event.respondWith(handleOPFS(url.pathname));
   }
 });
 
-async function handleOPFSRequest(pathname) {
+async function handleOPFS(pathname) {
   try {
-    const opfsPath = pathname.split('/@opfs/')[1];
-    if (!opfsPath) throw new Error("Path không hợp lệ");
+    // Trích xuất path thực tế: /deepwhale/@opfs/docsify/index.html -> docsify/index.html
+    const segment = '/@opfs/';
+    const opfsPath = pathname.substring(pathname.indexOf(segment) + segment.length);
+    
+    if (!opfsPath) throw new Error("Path rỗng");
 
-    const decodedPath = decodeURIComponent(opfsPath);
-    const parts = decodedPath.split('/').filter(p => p);
-    
+    const parts = decodeURIComponent(opfsPath).split('/').filter(Boolean);
     let currentHandle = await navigator.storage.getDirectory();
-    
-    // Duyệt qua các thư mục cha
+
+    // Duyệt cây thư mục
     for (let i = 0; i < parts.length - 1; i++) {
-      currentHandle = await currentHandle.getDirectoryHandle(parts[i], { create: false });
+      currentHandle = await currentHandle.getDirectoryHandle(parts[i]);
     }
 
-    // Lấy file handle cuối cùng
     const fileName = parts[parts.length - 1];
     const fileHandle = await currentHandle.getFileHandle(fileName);
     const file = await fileHandle.getFile();
 
-    // Tạo Header phản hồi
-    const responseHeaders = new Headers({
-      'Content-Type': getContentType(fileName),
-      'Cache-Control': 'no-cache',
-      'Cross-Origin-Resource-Policy': 'cross-origin'
-    });
-
+    // Trả về Response với MIME type chuẩn để trình duyệt thực thi được JS/CSS
     return new Response(file, {
-      status: 200,
-      headers: responseHeaders
+      headers: {
+        'Content-Type': getMimeType(fileName),
+        'Cache-Control': 'no-cache',
+        'Cross-Origin-Resource-Policy': 'cross-origin'
+      }
     });
   } catch (e) {
-    console.warn("SW OPFS 404:", pathname, e.message);
-    return new Response(`[DeepWhale SW] File not found: ${e.message}`, { 
-      status: 404,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-    });
+    return new Response(`[DeepWhale Error] ${e.message}`, { status: 404 });
   }
 }
 
-function getContentType(fileName) {
+function getMimeType(fileName) {
   const ext = fileName.split('.').pop().toLowerCase();
-  const map = {
+  const types = {
     'html': 'text/html; charset=utf-8',
     'js': 'application/javascript; charset=utf-8',
     'css': 'text/css; charset=utf-8',
     'md': 'text/markdown; charset=utf-8',
     'json': 'application/json',
     'png': 'image/png',
-    'jpg': 'image/jpeg',
-    'jpeg': 'image/jpeg',
-    'gif': 'image/gif',
-    'svg': 'image/svg+xml',
-    'wasm': 'application/wasm',
-    'pdf': 'application/pdf'
+    'svg': 'image/svg+xml'
   };
-  return map[ext] || 'application/octet-stream';
+  return types[ext] || 'application/octet-stream';
 }
