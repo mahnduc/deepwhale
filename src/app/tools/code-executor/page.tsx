@@ -94,7 +94,7 @@ export default function PythonToolbox() {
                 <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Thành công</span>
             )}
           </div>
-          <div className={`p-5 rounded-xl font-mono text-sm min-h-[150px] transition-all overflow-auto border-2 ${
+          <div className={`p-5 rounded-xl font-mono text-sm min-h-37.5 transition-all overflow-auto border-2 ${
             status === 'error' 
             ? 'bg-red-50 border-red-100 text-red-600' 
             : 'bg-slate-900 border-slate-800 text-green-400 shadow-inner'

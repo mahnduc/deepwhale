@@ -236,7 +236,7 @@ export default function ApiKeyManager() {
                                             <span className="text-success tracking-widest">Active</span>
                                         </div>
                                         <div className={`h-2 w-full rounded-full bg-base-200 ${neoInset}`}>
-                                            <div className="h-full w-[100%] bg-success rounded-full opacity-50 shadow-[0_0_10px_rgba(0,255,0,0.3)]"></div>
+                                            <div className="h-full w-full bg-success rounded-full opacity-50 shadow-[0_0_10px_rgba(0,255,0,0.3)]"></div>
                                         </div>
                                     </div>
                                     <button className="btn btn-xs btn-ghost mt-6 text-[9px] tracking-widest uppercase opacity-40">Refresh Data</button>
