@@ -19,11 +19,6 @@ export const menuItems = [
     label: "Trang chủ",
     icon: LayoutDashboard,
   },
-  // {
-  //   href: "/opfs-explorer",
-  //   label: "OPFSExplorer",
-  //   icon: Folder,
-  // },
   {
     href: "/tools",
     label: "Công cụ",
@@ -34,11 +29,11 @@ export const menuItems = [
     label: "Trò chuyện",
     icon: BotMessageSquare,
   },
-  {
-    href: "/courses",
-    label: "Bài học",
-    icon: Share2,
-  },
+  // {
+  //   href: "/courses",
+  //   label: "Bài học",
+  //   icon: Share2,
+  // },
   {
     href: "/communities",
     label: "Cộng đồng",

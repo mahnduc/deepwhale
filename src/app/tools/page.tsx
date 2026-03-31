@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Box, Code2, Cpu, Globe, Key, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { tools } from "./tools.data";
 
 export default function Tools() {
     const router = useRouter();
@@ -9,44 +10,6 @@ export default function Tools() {
     const neoFlat = "shadow-[5px_5px_10px_rgba(0,0,0,0.1),-5px_-5px_10px_rgba(255,255,255,0.5)]";
     const neoInset = "shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.5)]";
     const neoPressed = "active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.1),inset_-2px_-2px_5px_rgba(255,255,255,0.5)]";
-
-    const tools = [
-        { 
-            id: 1, 
-            name: "MCP Server", 
-            path: "mcp-server", 
-            description: "Kết nối model với các công cụ bên ngoài.", 
-            icon: <Cpu size={22} /> 
-        },
-        { 
-            id: 2, 
-            name: "RAG Engine", 
-            path: "rag-engine", 
-            description: "Truy xuất dữ liệu tăng cường cho AI.", 
-            icon: <Box size={22} /> 
-        },
-        { 
-            id: 3, 
-            name: "Web Scraper", 
-            path: "web-scraper", 
-            description: "Trích xuất dữ liệu từ các trang web.", 
-            icon: <Globe size={22} /> 
-        },
-        { 
-            id: 4, 
-            name: "Code Executor", 
-            path: "code-executor", 
-            description: "Chạy mã Python trực tiếp trong sandbox.", 
-            icon: <Code2 size={22} /> 
-        },
-        { 
-            id: 5, 
-            name: "API Key", 
-            path: "api-key-manager", 
-            description: "Quản lý api key người dùng.", 
-            icon: <Key size={22} /> 
-        }
-    ];
 
     return (
         <div className="min-h-screen bg-base-200 p-8 text-base-content transition-colors duration-300">
@@ -97,7 +60,7 @@ export default function Tools() {
                         </div>
                     ))}
 
-                    {/* Placeholder Card (Trống) */}
+                    {/* Placeholder */}
                     <div className={`rounded-[2.5rem] bg-base-200 p-8 border-2 border-dashed border-base-content/5 flex flex-col items-center justify-center opacity-30`}>
                         <div className="w-12 h-12 rounded-full flex items-center justify-center border-2 border-dashed border-current mb-4">
                             <span className="text-2xl font-light">+</span>
