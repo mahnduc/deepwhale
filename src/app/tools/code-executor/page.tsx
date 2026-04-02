@@ -1,14 +1,19 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { Play, Terminal, Cpu, Info } from 'lucide-react';
 
 export default function PythonToolbox() {
   const [inputs, setInputs] = useState({ name: '', age: '' });
-  const [output, setOutput] = useState<any>(null); // Để any để nhận cả Object
+  const [output, setOutput] = useState<any>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const workerRef = useRef<Worker | null>(null);
 
+  // ĐỒNG BỘ HỆ THỐNG SHADOW
+  const neoFlat = "shadow-[5px_5px_10px_rgba(0,0,0,0.1),-5px_-5px_10px_rgba(255,255,255,0.5)]";
+  const neoInset = "shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.5)]";
+  const neoPressed = "active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.1),inset_-2px_-2px_5px_rgba(255,255,255,0.5)] active:scale-[0.98]";
+
   useEffect(() => {
-    // Khởi tạo worker
     workerRef.current = new Worker(new URL('../../../workers/pyodide.worker.ts', import.meta.url));
     
     workerRef.current.onmessage = (e) => {
@@ -36,85 +41,97 @@ export default function PythonToolbox() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-8 border border-gray-100">
-        <div className="flex items-center space-x-3 mb-8">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">Py</div>
-          <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Python Local Engine</h1>
-        </div>
+    <div className="min-h-screen bg-base-200 py-12 px-4 transition-colors duration-300">
+      <div className="max-w-3xl mx-auto">
+        
+        {/* HEADER */}
+        <header className="mb-12 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="text-center md:text-left">
+            <h1 className="text-4xl font-black tracking-tighter uppercase italic">
+              Python <span className="text-primary">Engine</span>
+            </h1>
+            <p className="text-[10px] font-bold opacity-40 uppercase tracking-[0.3em] mt-2">
+              Thực thi WebAssembly local
+            </p>
+          </div>
+          <div className={`p-4 rounded-2xl bg-base-200 text-primary ${neoFlat}`}>
+            <Cpu size={24} />
+          </div>
+        </header>
 
-        {/* --- KHỐI NHẬP LIỆU --- */}
-        <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Tên người dùng</label>
+        {/* MAIN CONTAINER */}
+        <div className={`rounded-[3rem] bg-base-200 p-10 ${neoFlat} space-y-10`}>
+          
+          {/* INPUT SECTION */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-2">Tên người dùng</label>
               <input
-                placeholder="Ví dụ: Vương Mạnh Đức"
-                className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                placeholder="Nhập tên..."
+                className={`w-full bg-base-200 p-4 rounded-2xl outline-none border-none font-bold text-sm transition-all ${neoInset} focus:text-primary`}
                 onChange={(e) => setInputs({ ...inputs, name: e.target.value })}
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Tuổi</label>
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-2">Tuổi</label>
               <input
                 type="number"
                 placeholder="22"
-                className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                className={`w-full bg-base-200 p-4 rounded-2xl outline-none border-none font-bold text-sm transition-all ${neoInset} focus:text-primary`}
                 onChange={(e) => setInputs({ ...inputs, age: e.target.value })}
               />
             </div>
           </div>
 
+          {/* RUN BUTTON */}
           <button
             onClick={runProcess}
             disabled={status === 'loading'}
-            className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-all shadow-lg active:scale-[0.98] ${
+            className={`w-full py-5 rounded-[1.5rem] bg-base-200 font-black text-[11px] tracking-[0.2em] uppercase transition-all flex items-center justify-center gap-3 ${
               status === 'loading' 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
+              ? 'text-base-content/20 ' + neoInset 
+              : 'text-primary ' + neoFlat + ' ' + neoPressed
             }`}
           >
             {status === 'loading' ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Đang tính toán trong Browser...
-              </span>
-            ) : 'Thực thi Python Script'}
-          </button>
-        </div>
-
-        {/* --- KHỐI OUTPUT (TERMINAL) --- */}
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-bold text-gray-500 uppercase tracking-widest">Output Console</span>
-            {status === 'idle' && output && (
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Thành công</span>
-            )}
-          </div>
-          <div className={`p-5 rounded-xl font-mono text-sm min-h-37.5 transition-all overflow-auto border-2 ${
-            status === 'error' 
-            ? 'bg-red-50 border-red-100 text-red-600' 
-            : 'bg-slate-900 border-slate-800 text-green-400 shadow-inner'
-          }`}>
-            {output ? (
-                typeof output === 'object' ? (
-                    <pre>{JSON.stringify(output, null, 2)}</pre>
-                ) : (
-                    <p>{output}</p>
-                )
+              <>
+                <span className="loading loading-spinner loading-xs"></span>
+                Đang xử lý...
+              </>
             ) : (
-              <p className="text-slate-500 animate-pulse">Đang chờ lệnh từ bạn...</p>
+              <>
+                <Play size={16} fill="currentColor" />
+                Thực thi Python Script
+              </>
             )}
-          </div>
-        </div>
+          </button>
 
-        <div className="mt-6 text-center">
-            <p className="text-xs text-gray-400">
-                Chạy hoàn toàn bằng WebAssembly & Pyodide. Dữ liệu không rời khỏi trình duyệt.
-            </p>
+          {/* OUTPUT CONSOLE */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-2">
+              <div className="flex items-center gap-2">
+                <Terminal size={14} className="opacity-40" />
+                <span className="text-[10px] font-black opacity-40 uppercase tracking-widest">Output Console</span>
+              </div>
+              {status === 'error' && <span className="text-[8px] font-black text-error uppercase tracking-tighter">Lỗi thực thi</span>}
+            </div>
+
+            <div className={`p-8 rounded-[2.5rem] bg-base-200 min-h-[150px] transition-all overflow-auto ${neoInset}`}>
+              {output ? (
+                <div className={`font-mono text-sm leading-relaxed ${status === 'error' ? 'text-error' : 'text-primary'}`}>
+                   {typeof output === 'object' ? (
+                      <pre className="whitespace-pre-wrap">{JSON.stringify(output, null, 2)}</pre>
+                    ) : (
+                      <p>{output}</p>
+                    )}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full opacity-20 italic text-sm">
+                  <p className="animate-pulse">Đang chờ lệnh từ bạn...</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

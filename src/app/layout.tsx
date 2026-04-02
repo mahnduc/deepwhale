@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import ThemeProvider from "@/components/ThemeProvider";
+import ThemeProvider from "@/app/settings/_components/ThemeProvider";
 import "./globals.css";
 import Sidebar from "@/components/sidebar";
-import { Menu } from "lucide-react"; // Import icon để mở menu trên mobile
+import { Menu } from "lucide-react"; 
 
 export default function RootLayout({
   children,
@@ -14,10 +14,9 @@ export default function RootLayout({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Tự động đóng mobile menu khi kích thước màn hình thay đổi lên desktop
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) { // lg breakpoint
+      if (window.innerWidth >= 1024) { 
         setIsMobileMenuOpen(false);
       }
     };

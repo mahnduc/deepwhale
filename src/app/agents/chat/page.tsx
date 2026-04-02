@@ -2,226 +2,302 @@
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Send, ArrowLeft, Bot, User, MoreVertical, Hash } from 'lucide-react';
+import {
+  Send,
+  ArrowLeft,
+  Cpu,
+  AlertCircle,
+  History
+} from 'lucide-react';
+import { PGlite } from '@electric-sql/pglite';
+
+import * as GroqService from "./_domain/groq";
+
+const NEO_FLAT =
+  'bg-base-200 shadow-[6px_6px_12px_#b8b9be,-6px_-6px_12px_#ffffff]';
+const NEO_INSET =
+  'bg-base-200 shadow-[inset:6px_6px_12px_#b8b9be,inset_-6px_-6px_#ffffff]';
+const NEO_PRESSED =
+  'active:shadow-[inset:4px:4px:8px_#b8b9be,inset_-4px_-4px:8px_#ffffff] transition-all';
 
 interface AgentData {
-    agent_id: string;
-    name: string;
-    description: string;
-    avatarUrl: string;
-    style: string;
+  agent_id: string;
+  name: string;
+  description: string;
+  avatarUrl: string;
 }
 
 interface Message {
-    id: string;
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp: Date;
-}
-
-// Hàm lấy dữ liệu từ OPFS (Giữ nguyên logic đường dẫn đã sửa ở các bước trước)
-async function getAgentFromOPFS(agentId: string): Promise<AgentData | null> {
-    try {
-        const root = await navigator.storage.getDirectory();
-        const agentsDir = await root.getDirectoryHandle('agents', { create: false });
-        const membersDir = await agentsDir.getDirectoryHandle('members', { create: false });
-        const fileHandle = await membersDir.getFileHandle('agent_members.json', { create: false });
-
-        const file = await fileHandle.getFile();
-        const text = await file.text();
-        if (!text) return null;
-
-        const allAgents: AgentData[] = JSON.parse(text);
-        return allAgents.find(a => a.agent_id === agentId) || null;
-    } catch (err) {
-        return null;
-    }
+  id: string;
+  agent_id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: number;
 }
 
 function ChatContent() {
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const agentId = searchParams.get('id');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  const targetId = searchParams.get('id'); // string | null
 
-    const [agent, setAgent] = useState<AgentData | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: '1',
-            role: 'assistant',
-            content: 'Giao thức đã được thiết lập. Tôi sẵn sàng xử lý yêu cầu của bạn.',
-            timestamp: new Date()
+  const [pg, setPg] = useState<PGlite | null>(null);
+  const [agent, setAgent] = useState<AgentData | null>(null);
+  const [apiKey, setApiKey] = useState('');
+  const [models, setModels] = useState<any[]>([]);
+  const [selectedModel, setSelectedModel] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const refreshMessages = async (db: PGlite, aId: string) => {
+    const res = await db.query<Message>(
+      `SELECT * FROM messages WHERE agent_id = $1 ORDER BY timestamp ASC`,
+      [aId]
+    );
+    setMessages(res.rows);
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!targetId) {
+      setError('Thiếu ID agent.');
+      return;
+    }
+
+    const safeId: string = targetId;
+
+    async function init() {
+      try {
+        // ===== INIT DB =====
+        const db = new PGlite('opfs://chat_db');
+
+        await db.exec(`
+          CREATE TABLE IF NOT EXISTS messages (
+            id TEXT PRIMARY KEY,
+            agent_id TEXT,
+            role TEXT,
+            content TEXT,
+            timestamp BIGINT
+          );
+        `);
+
+        if (isMounted) setPg(db);
+
+        // ===== LOAD AGENT (SAFE) =====
+        let agents: AgentData[] = [];
+
+        try {
+          const root = await navigator.storage.getDirectory();
+          const systemAgentsDir = await root.getDirectoryHandle('system-agents', { create: true });
+          const membersDir = await systemAgentsDir.getDirectoryHandle('members', { create: true });
+
+          let text = '[]';
+
+          try {
+            const fileHandle = await membersDir.getFileHandle('agent_members.json');
+            const file = await fileHandle.getFile();
+            text = await file.text();
+          } catch {
+            console.warn('Chưa có agent_members.json');
+          }
+
+          agents = JSON.parse(text || '[]');
+        } catch (err) {
+          console.error('Lỗi OPFS:', err);
         }
-    ]);
-    const [input, setInput] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
 
-    const scrollRef = useRef<HTMLDivElement>(null);
+        const found = agents.find(a => a.agent_id === safeId);
 
-    // Neumorphism Utility Classes
-    const neoFlat = "shadow-[5px_5px_10px_rgba(0,0,0,0.1),-5px_-5px_10px_rgba(255,255,255,0.5)]";
-    const neoInset = "shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.5)]";
-    const neoPressed = "active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.1),inset_-2px_-2px_5px_rgba(255,255,255,0.5)]";
-
-    useEffect(() => {
-        if (!agentId) {
-            setError('Định danh thực thể không hợp lệ.');
-            return;
+        if (!found) {
+          setError('Không tìm thấy agent.');
+          return;
         }
-        (async () => {
-            const data = await getAgentFromOPFS(agentId);
-            if (!data) {
-                setError('Thực thể không tồn tại trong bộ nhớ cục bộ.');
-                return;
+
+        if (isMounted) setAgent(found);
+
+        // ===== LOAD API KEY =====
+        try {
+          const root = await navigator.storage.getDirectory();
+          const systemAgentsDir = await root.getDirectoryHandle('system-agents');
+
+          const fileHandle = await systemAgentsDir.getFileHandle('api-key');
+          const file = await fileHandle.getFile();
+          const keyData = await file.text();
+
+          const keys = JSON.parse(keyData || '[]');
+
+          if (keys.length > 0) {
+            const key = keys[0].key;
+            setApiKey(key);
+
+            if (typeof GroqService.fetchGroqModels === 'function') {
+              const fetched = await GroqService.fetchGroqModels(key);
+              setModels(fetched);
+
+              if (fetched.length > 0) {
+                setSelectedModel(fetched[0].id);
+              }
             }
-            setAgent(data);
-        })();
-    }, [agentId]);
+          }
+        } catch {
+          console.warn('Không có API key → offline mode');
+        }
 
-    useEffect(() => {
-        scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isTyping]);
+        await refreshMessages(db, safeId);
 
-    const sendMessage = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!input.trim() || !agent) return;
+      } catch (err: any) {
+        setError(err.message);
+      }
+    }
 
-        const userMsg: Message = {
-            id: Date.now().toString(),
-            role: 'user',
-            content: input,
-            timestamp: new Date()
-        };
+    init();
 
-        setMessages(prev => [...prev, userMsg]);
-        setInput('');
-        setIsTyping(true);
-
-        // Giả lập phản hồi AI
-        setTimeout(() => {
-            setIsTyping(false);
-            setMessages(prev => [
-                ...prev,
-                {
-                    id: (Date.now() + 1).toString(),
-                    role: 'assistant',
-                    content: `Phán quyết từ ${agent.name}: Phân tích dữ liệu hoàn tất. Logic yêu cầu của bạn đã được ghi nhận vào hạt nhân hệ thống.`,
-                    timestamp: new Date()
-                }
-            ]);
-        }, 1500);
+    return () => {
+      isMounted = false;
     };
+  }, [targetId]);
 
-    if (error) return (
-        <div className="h-screen flex flex-col items-center justify-center gap-6 bg-base-200 p-8">
-            <div className={`p-10 rounded-[2.5rem] bg-base-200 text-center ${neoFlat}`}>
-                <p className="text-error font-black uppercase tracking-tighter mb-4">{error}</p>
-                <button onClick={() => router.push('/agents')} className={`btn btn-ghost uppercase text-xs tracking-widest ${neoFlat}`}>Quay lại danh bạ</button>
-            </div>
-        </div>
-    );
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
 
-    if (!agent) return (
-        <div className="h-screen flex items-center justify-center bg-base-200">
-            <span className="loading loading-ring loading-lg opacity-20"></span>
-        </div>
-    );
+  // ===== SEND MESSAGE =====
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
 
+    if (!input.trim() || !agent || !pg || isTyping) return;
+
+    const userText = input.trim();
+    const now = Date.now();
+
+    setInput('');
+
+    try {
+      await pg.query(
+        `INSERT INTO messages VALUES ($1,$2,$3,$4,$5)`,
+        [`msg_${now}`, agent.agent_id, 'user', userText, now]
+      );
+
+      await refreshMessages(pg, agent.agent_id);
+
+      // ===== OFFLINE MODE =====
+      if (!apiKey) {
+        await pg.query(
+          `INSERT INTO messages VALUES ($1,$2,$3,$4,$5)`,
+          [`ai_${Date.now()}`, agent.agent_id, 'assistant', '⚠️ No API key', Date.now()]
+        );
+
+        await refreshMessages(pg, agent.agent_id);
+        return;
+      }
+
+      setIsTyping(true);
+
+      const contextRes = await pg.query<Message>(
+        `SELECT role, content FROM messages WHERE agent_id = $1 ORDER BY timestamp DESC LIMIT 10`,
+        [agent.agent_id]
+      );
+
+      const reply = await GroqService.callGroqAPI({
+        apiKey,
+        model: selectedModel,
+        systemPrompt: agent.description,
+        messages: contextRes.rows.reverse(),
+        userInput: userText
+      });
+
+      await pg.query(
+        `INSERT INTO messages VALUES ($1,$2,$3,$4,$5)`,
+        [`ai_${Date.now()}`, agent.agent_id, 'assistant', reply, Date.now()]
+      );
+
+      await refreshMessages(pg, agent.agent_id);
+
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  // ===== UI =====
+  if (error)
     return (
-        <div className="flex flex-col h-screen bg-base-200 text-base-content overflow-hidden">
-            
-            {/* --- Header --- */}
-            <header className={`z-10 flex items-center justify-between px-6 py-4 bg-base-200 ${neoFlat}`}>
-                <div className="flex items-center gap-4">
-                    <Link href="/agents" className={`p-3 rounded-xl bg-base-200 text-base-content/50 hover:text-primary transition-all ${neoPressed}`}>
-                        <ArrowLeft size={20} />
-                    </Link>
-                    <div className={`p-1 rounded-full bg-base-200 ${neoInset}`}>
-                        <img src={agent.avatarUrl} className="w-10 h-10 rounded-full object-cover" alt={agent.name} />
-                    </div>
-                    <div>
-                        <h2 className="text-sm font-black uppercase tracking-tighter flex items-center gap-2">
-                            {agent.name}
-                            <span className="w-2 h-2 rounded-full bg-success shadow-[0_0_8px_rgba(0,255,0,0.4)] animate-pulse"></span>
-                        </h2>
-                        <p className="text-[9px] font-bold opacity-40 uppercase tracking-widest">{agent.style} Interface</p>
-                    </div>
-                </div>
-                <button className={`p-3 rounded-xl bg-base-200 opacity-40 ${neoPressed}`}>
-                    <MoreVertical size={20} />
-                </button>
-            </header>
+      <div className="h-screen flex items-center justify-center font-mono">
+        <div className={`${NEO_FLAT} p-12 rounded-[3rem] text-error`}>
+          <AlertCircle className="mx-auto mb-4" />
+          <p className="text-xs font-black uppercase">{error}</p>
 
-            {/* --- Chat Window --- */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar bg-base-200">
-                {messages.map((m) => (
-                    <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2`}>
-                        <div className={`flex gap-3 max-w-[80%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                            
-                            {/* Avatar Icon */}
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-base-200 ${neoFlat}`}>
-                                {m.role === 'user' ? <User size={14} /> : <Bot size={14} className="text-primary" />}
-                            </div>
-
-                            {/* Bubble */}
-                            <div>
-                                <div className={`px-5 py-4 rounded-[1.8rem] text-sm leading-relaxed ${
-                                    m.role === 'user' 
-                                    ? `bg-base-200 text-primary font-medium ${neoFlat} rounded-tr-none` 
-                                    : `bg-base-200 opacity-80 ${neoInset} rounded-tl-none`
-                                }`}>
-                                    {m.content}
-                                </div>
-                                <p className={`text-[8px] mt-2 font-bold opacity-30 uppercase tracking-tighter ${m.role === 'user' ? 'text-right' : 'text-left'}`}>
-                                    {m.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-                
-                {isTyping && (
-                    <div className="flex justify-start">
-                        <div className={`px-6 py-3 rounded-full bg-base-200 flex gap-1 ${neoInset}`}>
-                            <span className="w-1 h-1 bg-primary rounded-full animate-bounce"></span>
-                            <span className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                            <span className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.4s]"></span>
-                        </div>
-                    </div>
-                )}
-                <div ref={scrollRef} />
-            </div>
-
-            {/* --- Input Area --- */}
-            <footer className="p-6 bg-base-200">
-                <form onSubmit={sendMessage} className={`relative flex items-center p-2 rounded-4xl bg-base-200 ${neoInset}`}>
-                    <div className="pl-4 text-primary/30">
-                        <Hash size={18} />
-                    </div>
-                    <input
-                        value={input}
-                        onChange={e => setInput(e.target.value)}
-                        placeholder={`Gửi lệnh tới ${agent.name}...`}
-                        className="flex-1 bg-transparent border-none focus:ring-0 px-4 py-3 text-sm font-medium placeholder:opacity-30"
-                    />
-                    <button 
-                        type="submit" 
-                        disabled={!input.trim()}
-                        className={`p-4 rounded-full bg-primary text-primary-content transition-all hover:scale-105 disabled:opacity-20 disabled:grayscale ${neoFlat} ${neoPressed}`}
-                    >
-                        <Send size={18} />
-                    </button>
-                </form>
-            </footer>
+          <button
+            onClick={() => router.push('/agents')}
+            className="mt-6 text-primary"
+          >
+            ← Quay lại
+          </button>
         </div>
+      </div>
     );
+
+  if (!agent)
+    return (
+      <div className="h-screen flex items-center justify-center opacity-20 uppercase text-xs">
+        Loading...
+      </div>
+    );
+  
+  return (
+    <div className="flex h-screen flex-col bg-base-200 font-mono">
+      <header className={`${NEO_FLAT} p-4 flex items-center gap-4`}>
+        <button onClick={() => router.back()} className={`${NEO_FLAT} p-2 rounded`}>
+          <ArrowLeft size={16} />
+        </button>
+        <h2 className="font-black uppercase text-xs">{agent.name}</h2>
+      </header>
+
+      <main className="flex-1 overflow-y-auto p-6 space-y-4">
+        {messages.map((m) => (
+          <div key={m.id} className={m.role === 'user' ? 'text-right' : 'text-left'}>
+            <div className="inline-block p-3 rounded-xl bg-base-300">
+              {m.content}
+            </div>
+          </div>
+        ))}
+
+        {isTyping && (
+          <div className="opacity-40 text-xs flex gap-2">
+            <Cpu size={12} /> AI đang trả lời...
+          </div>
+        )}
+
+        <div ref={scrollRef} />
+      </main>
+
+      <footer className="p-4">
+        <form onSubmit={handleSend} className="flex gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className="flex-1 p-2 border rounded"
+            placeholder="Nhập tin nhắn..."
+          />
+          <button type="submit" className="px-4 bg-primary text-white rounded">
+            <Send size={16} />
+          </button>
+        </form>
+      </footer>
+    </div>
+  );
 }
 
 export default function Page() {
-    return (
-        <Suspense fallback={<div className="h-screen bg-base-200" />}>
-            <ChatContent />
-        </Suspense>
-    );
+  return (
+    <Suspense fallback={<div className="h-screen flex items-center justify-center">Loading...</div>}>
+      <ChatContent />
+    </Suspense>
+  );
 }

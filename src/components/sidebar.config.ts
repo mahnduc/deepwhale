@@ -11,6 +11,8 @@ import {
   BookAIcon,
   Share2,
   Users,
+  ZodiacVirgo,
+  Bot,
 } from "lucide-react";
 
 export const menuItems = [
@@ -25,20 +27,25 @@ export const menuItems = [
     icon: Wrench,
   },
   {
-    href: "/agents",
-    label: "Trò chuyện",
-    icon: BotMessageSquare,
+    href: "/pengu",
+    label: "Pengu",
+    icon: Bot,
   },
+  // {
+  //   href: "/agents",
+  //   label: "Trò chuyện",
+  //   icon: BotMessageSquare,
+  // },
   // {
   //   href: "/courses",
   //   label: "Bài học",
   //   icon: Share2,
   // },
-  {
-    href: "/communities",
-    label: "Cộng đồng",
-    icon: Users,
-  },
+  // {
+  //   href: "/communities",
+  //   label: "Cộng đồng",
+  //   icon: Users,
+  // },
 ];
 
 export const bottomMenuItems = [

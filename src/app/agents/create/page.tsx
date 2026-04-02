@@ -54,7 +54,7 @@ export default function CreateNewAgent() {
   const saveToSingleFileOPFS = async (newAgent: AgentData) => {
     try {
       const root = await navigator.storage.getDirectory();
-      const agentsDir = await root.getDirectoryHandle('agents', { create: true });
+      const agentsDir = await root.getDirectoryHandle('system-agents', { create: true });
       const membersDir = await agentsDir.getDirectoryHandle('members', { create: true });
       const fileHandle = await membersDir.getFileHandle('agent_members.json', { create: true });
       

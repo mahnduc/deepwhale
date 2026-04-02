@@ -2,14 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
-import { tools } from "./tools.data";
+import { TOOLS_LIST } from "./tools.constants";
+import { neoFlat, neoInset, neoPressed } from "../styles/neomorphism";
 
 export default function Tools() {
     const router = useRouter();
-
-    const neoFlat = "shadow-[5px_5px_10px_rgba(0,0,0,0.1),-5px_-5px_10px_rgba(255,255,255,0.5)]";
-    const neoInset = "shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.5)]";
-    const neoPressed = "active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.1),inset_-2px_-2px_5px_rgba(255,255,255,0.5)]";
 
     return (
         <div className="min-h-screen bg-base-200 p-8 text-base-content transition-colors duration-300">
@@ -23,7 +20,7 @@ export default function Tools() {
                 </header>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 ">
-                    {tools.map((tool) => (
+                    {TOOLS_LIST.map((tool) => (
                         <div 
                             key={tool.id} 
                             onClick={() => router.push(`/tools/${tool.path}`)}

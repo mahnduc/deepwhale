@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ThemeSettingsUI from "@/components/ThemeSettingsUI";
+import ThemeSettingsUI from "@/app/settings/_components/ThemeSettingsUI";
 import { Theme } from "./theme";
 
 function Settings() {
