@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import ThemeProvider from "@/app/settings/_components/ThemeProvider";
-import "./globals.css";
 import Sidebar from "@/components/sidebar";
 import { Menu } from "lucide-react"; 
+import "./globals.css";
 
 export default function RootLayout({
   children,
