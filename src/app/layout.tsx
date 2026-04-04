@@ -28,6 +28,9 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        <script src="/deepwhale/coi-serviceworker.js" async></script>
+      </head>
       <body className="flex h-screen w-full overflow-hidden bg-base-200 transition-colors duration-300 scrollbar-hide text-base-content">
         <ThemeProvider />
 

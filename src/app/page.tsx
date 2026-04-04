@@ -236,7 +236,7 @@ export default function SchedulePage() {
                   <Edit3 size={20} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase opacity-30 tracking-[0.3em] block">Data Entry</label>
+                  <label className="text-[10px] font-black uppercase opacity-30 tracking-[0.3em] block">Ghi chú của bạn</label>
                   <h3 className="text-lg font-black tracking-tight uppercase">{selectedDateKey}</h3>
                 </div>
               </div>

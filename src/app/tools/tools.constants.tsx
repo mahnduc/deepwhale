@@ -1,5 +1,5 @@
 // src/constants/tools.constants.tsx
-import { Code2, Folder, Key } from "lucide-react";
+import { Code2, Folder, Key, SquaresSubtract } from "lucide-react";
 import { ToolItem } from "./tool.types";
 
 export const TOOLS_LIST: ToolItem[] = [
@@ -16,6 +16,13 @@ export const TOOLS_LIST: ToolItem[] = [
     path: "code-executor", 
     description: "Chạy mã Python trực tiếp trong sandbox.", 
     icon: <Code2 size={22} /> 
+  },
+    { 
+    id: 2, 
+    name: "toMarkdown", 
+    path: "tomarkdown", 
+    description: "Công cụ chuyển đổi tài liệu thành markdown.", 
+    icon: <SquaresSubtract size={22} /> 
   },
   { 
     id: 5, 
