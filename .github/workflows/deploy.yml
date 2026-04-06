@@ -2,7 +2,7 @@ name: Deploy Next.js TypeScript Site
 
 on:
   push:
-    branches: ["main"]
+    branches: ["dev"]
 
 permissions:
   contents: read
