@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   output: 'export', 
   basePath: '/deepwhale', //tên repo; đường dẫn mặc định /deepwhale
+  assetPrefix: '/deepwhale/',
   trailingSlash: true,
   images: {
     unoptimized: true,
