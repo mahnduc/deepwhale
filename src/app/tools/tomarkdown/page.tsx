@@ -5,7 +5,7 @@ import { usePdfProcessor } from './_hooks/usePdfProcessor';
 import ReactMarkdown from 'react-markdown';
 import { 
   FileText, Trash2, FileUp, Loader2, 
-  Menu, ChevronLeft, Type, Eye, Save
+  Menu, ChevronLeft, Type, Eye, Plus, Terminal
 } from 'lucide-react';
 
 const OPFS_DIR = 'to-markdown';
@@ -17,7 +17,6 @@ export default function ToMarkdownPage() {
   const [viewMode, setViewMode] = useState<'preview' | 'edit'>('preview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // --- Logic OPFS giữ nguyên để đảm bảo chức năng ---
   const getFolderHandle = async () => {
     const root = await navigator.storage.getDirectory();
     return await root.getDirectoryHandle(OPFS_DIR, { create: true });
@@ -85,35 +84,36 @@ export default function ToMarkdownPage() {
   const activeDoc = history.find(d => d.id === activeId);
 
   return (
-    <div className="flex h-screen bg-base-100 text-base-content antialiased">
-      {/* Sidebar - Minimalist Style */}
-      <aside className={`bg-base-200/50 transition-all duration-300 border-r border-base-300 flex flex-col ${isSidebarOpen ? 'w-80' : 'w-0 opacity-0 overflow-hidden'}`}>
-        <div className="p-6 flex items-center justify-between">
-          <h2 className="text-sm font-bold tracking-widest uppercase opacity-50">Thư viện</h2>
-          <button onClick={() => setIsSidebarOpen(false)} className="btn btn-ghost btn-xs btn-circle">
+    <div className="flex h-screen bg-base-100 text-base-content antialiased overflow-hidden">
+      
+      {/* Sidebar - State-driven Minimalist */}
+      <aside className={`transition-all duration-300 border-r border-base-300 flex flex-col bg-base-100 ${isSidebarOpen ? 'w-72' : 'w-0 opacity-0 overflow-hidden'}`}>
+        <div className="p-6 border-b border-base-300 flex items-center justify-between">
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Tài liệu</span>
+          <button onClick={() => setIsSidebarOpen(false)} className="btn btn-ghost btn-xs btn-square opacity-40 hover:opacity-100">
             <ChevronLeft size={16} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 space-y-2">
+        <div className="flex-1 overflow-y-auto">
           {history.length === 0 && (
-            <div className="text-center py-20 opacity-30 italic text-sm">Trống</div>
+            <div className="p-10 text-center opacity-20 text-[10px] font-bold uppercase tracking-widest italic">Registry Empty</div>
           )}
           {history.map(doc => (
             <div 
               key={doc.id} 
               onClick={() => { setActiveId(doc.id); setMarkdown(doc.content); setStatus('idle'); }}
-              className={`group flex items-center justify-between p-3 rounded-2xl cursor-pointer transition-all duration-200 ${
-                activeId === doc.id ? 'bg-primary text-primary-content shadow-lg shadow-primary/20' : 'hover:bg-base-300'
+              className={`group flex items-center gap-3 p-4 border-b border-base-300 cursor-pointer transition-colors ${
+                activeId === doc.id ? 'bg-base-200/60' : 'hover:bg-base-200/30'
               }`}
             >
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{doc.name}</p>
-                <p className={`text-[10px] opacity-60 ${activeId === doc.id ? 'text-white' : ''}`}>{doc.date}</p>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-semibold truncate ${activeId === doc.id ? 'text-primary' : ''}`}>{doc.name}</p>
+                <p className="text-[10px] font-mono opacity-30 mt-1 uppercase tracking-tighter">{doc.date}</p>
               </div>
               <button 
                 onClick={(e) => { e.stopPropagation(); deleteFile(doc.id); }} 
-                className={`btn btn-ghost btn-xs btn-circle opacity-0 group-hover:opacity-100 ${activeId === doc.id ? 'hover:bg-primary-focus' : 'text-error'}`}
+                className="opacity-0 group-hover:opacity-40 hover:opacity-100 hover:text-error transition-all p-1"
               >
                 <Trash2 size={14} />
               </button>
@@ -122,87 +122,97 @@ export default function ToMarkdownPage() {
         </div>
         
         <div className="p-4 border-t border-base-300">
-           <label className="btn btn-primary btn-block rounded-2xl gap-2 shadow-sm">
-              <FileUp size={18} />
-              <span className="normal-case">Tải tài liệu</span>
+           <label className="btn btn-primary btn-sm btn-block rounded-none gap-2 text-[10px] font-black uppercase tracking-widest">
+              <Plus size={14} />
+              Tải PDF Mới
               <input type="file" accept=".pdf" hidden onChange={handleFileChange} />
            </label>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0">
-        <header className="navbar bg-base-100/80 backdrop-blur-md sticky top-0 z-30 px-6 border-b border-base-200">
-          <div className="flex-1 gap-2">
+      {/* Main Content Area - Content-first */}
+      <main className="flex-1 flex flex-col min-w-0 bg-base-100">
+        
+        {/* Header - Flat & Sticky */}
+        <header className="h-16 px-6 border-b border-base-300 flex items-center justify-between sticky top-0 bg-base-100/80 backdrop-blur-sm z-10">
+          <div className="flex items-center gap-4 min-w-0">
             {!isSidebarOpen && (
-              <button onClick={() => setIsSidebarOpen(true)} className="btn btn-ghost btn-square">
-                <Menu size={20} />
+              <button onClick={() => setIsSidebarOpen(true)} className="btn btn-ghost btn-sm btn-square opacity-40 hover:opacity-100">
+                <Menu size={18} />
               </button>
             )}
-            <div>
-              <h1 className="text-sm font-bold truncate max-w-[200px] sm:max-w-md">
-                {activeDoc ? activeDoc.name : 'Untitled Document'}
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-sm font-bold truncate tracking-tight">
+                {activeDoc ? activeDoc.name : 'Chưa có tài liệu'}
               </h1>
               {status === 'loading' && (
-                <div className="flex items-center gap-2 text-[10px] text-primary font-bold uppercase tracking-tighter">
-                   <span className="loading loading-spinner loading-xs"></span>
-                   Đang xử lý {progress}%
+                <div className="flex items-center gap-2 text-[9px] text-primary font-black uppercase tracking-widest">
+                  <span className="loading loading-spinner loading-xs h-3 w-3"></span>
+                  Processing {progress}%
                 </div>
               )}
             </div>
           </div>
 
-          <div className="flex-none gap-4">
+          <div className="flex items-center gap-2">
             {activeDoc && (
-              <div className="join bg-base-200 p-1 rounded-xl">
+              <div className="flex bg-base-200/50 p-1 rounded-none border border-base-300">
                 <button 
                   onClick={() => setViewMode('preview')} 
-                  className={`join-item btn btn-xs border-none rounded-lg ${viewMode === 'preview' ? 'btn-active shadow-sm' : 'btn-ghost opacity-50'}`}
+                  className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'preview' ? 'bg-base-100 shadow-sm' : 'opacity-40 hover:opacity-100'}`}
                 >
-                  <Eye size={14} className="mr-1" /> Xem
+                  Xem
                 </button>
                 <button 
                   onClick={() => setViewMode('edit')} 
-                  className={`join-item btn btn-xs border-none rounded-lg ${viewMode === 'edit' ? 'btn-active shadow-sm' : 'btn-ghost opacity-50'}`}
+                  className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'edit' ? 'bg-base-100 shadow-sm' : 'opacity-40 hover:opacity-100'}`}
                 >
-                  <Type size={14} className="mr-1" /> Sửa
+                  Sửa
                 </button>
               </div>
             )}
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto bg-base-100 flex justify-center p-4 md:p-8">
+        {/* Content Feed */}
+        <div className="flex-1 overflow-y-auto">
           {!activeDoc && status !== 'loading' ? (
-            <div className="flex flex-col items-center justify-center text-center max-w-sm opacity-40 select-none pt-20">
-              <div className="bg-base-200 p-10 rounded-[3rem] mb-6">
-                <FileText size={64} strokeWidth={1} />
-              </div>
-              <p className="text-lg font-light tracking-tight">Bắt đầu bằng cách chọn một tệp từ thư viện hoặc tải lên PDF mới.</p>
+            <div className="py-40 flex flex-col items-center justify-center text-center opacity-10 select-none">
+              <Terminal size={64} strokeWidth={1} className="mb-6" />
+              <h2 className="text-[11px] font-black uppercase tracking-[0.5em]">Waiting for Input</h2>
             </div>
           ) : (
-            <div className={`w-full max-w-3xl transition-all duration-500 ${status === 'loading' ? 'blur-sm opacity-50' : 'opacity-100'}`}>
-              <div className="card bg-base-100 min-h-full">
-                {viewMode === 'edit' ? (
-                  <textarea 
-                    className="textarea textarea-ghost w-full min-h-[70vh] focus:outline-none p-0 text-base leading-relaxed font-mono resize-none"
-                    value={activeDoc?.content || markdown}
-                    onChange={(e) => {
-                      if (!activeId) return;
-                      const newContent = e.target.value;
-                      const updated = { ...activeDoc, content: newContent };
-                      setHistory(prev => prev.map(d => d.id === activeId ? updated : d));
-                      saveFile(updated);
-                    }}
-                    spellCheck={false}
-                    placeholder="Bắt đầu viết..."
-                  />
-                ) : (
-                  <article className="prose prose-slate lg:prose-lg max-w-none prose-headings:font-bold prose-a:text-primary">
-                    <ReactMarkdown>{activeDoc?.content || markdown}</ReactMarkdown>
-                  </article>
-                )}
+            <div className={`max-w-2xl mx-auto py-12 px-6 transition-opacity duration-300 ${status === 'loading' ? 'opacity-30 blur-sm' : 'opacity-100'}`}>
+              
+              {viewMode === 'edit' ? (
+                <textarea 
+                  className="w-full min-h-[70vh] bg-transparent focus:outline-none text-[15px] leading-relaxed font-mono resize-none border-none p-0"
+                  value={activeDoc?.content || markdown}
+                  onChange={(e) => {
+                    if (!activeId) return;
+                    const newContent = e.target.value;
+                    const updated = { ...activeDoc, content: newContent };
+                    setHistory(prev => prev.map(d => d.id === activeId ? updated : d));
+                    saveFile(updated);
+                  }}
+                  spellCheck={false}
+                  placeholder="Bắt đầu nhập nội dung..."
+                />
+              ) : (
+                <article className="prose prose-sm lg:prose-base prose-slate max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-p:leading-relaxed prose-pre:bg-base-200/50 prose-pre:text-base-content prose-pre:rounded-none">
+                  <ReactMarkdown>{activeDoc?.content || markdown}</ReactMarkdown>
+                </article>
+              )}
+
+              {/* Status Footer inside Content Area */}
+              <div className="mt-20 pt-10 border-t border-base-300 flex justify-between items-center opacity-20">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-success rounded-full"></div>
+                  <span className="text-[8px] font-black uppercase tracking-widest">Local-First Storage</span>
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-widest">Protocol: MarkItDown/DeepWhale</span>
               </div>
+
             </div>
           )}
         </div>

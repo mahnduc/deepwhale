@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   output: 'export', 
-  basePath: '/deepwhale', //tên repo // QUAN TRỌNG: cấu hình basePath sẽ làm thay đổi đường dẫn cấu hình dự án 
+  basePath: '/deepwhale', //tên repo; đường dẫn mặc định /deepwhale
   trailingSlash: true,
   images: {
     unoptimized: true,

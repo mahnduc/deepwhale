@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Calendar as CalendarIcon, Save, Edit3, ChevronLeft, ChevronRight, AlertCircle, Clock } from "lucide-react";
-
-const neoFlat = "shadow-[5px_5px_10px_rgba(0,0,0,0.1),-5px_-5px_10px_rgba(255,255,255,0.5)]";
-const neoInset = "shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.5)]";
-const neoPressed = "active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.1),inset_-2px_-2px_5px_rgba(255,255,255,0.5)]";
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  Clock, 
+  Save,
+  FileText,
+  Calendar as CalendarIcon
+} from "lucide-react";
 
 interface Note {
   id: string;
@@ -81,9 +84,9 @@ export default function SchedulePage() {
     try {
       const root = await navigator.storage.getDirectory();
       const fileHandle = await root.getFileHandle("deepwhale_notes.json", { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(JSON.stringify(updatedNotes));
-      await writable.close();
+      const fileHandleWritable = await fileHandle.createWritable();
+      await fileHandleWritable.write(JSON.stringify(updatedNotes));
+      await fileHandleWritable.close();
       setNotes(updatedNotes);
     } catch (err) { console.error("Save Fail", err); }
     finally { setTimeout(() => setIsSaving(false), 500); }
@@ -92,108 +95,55 @@ export default function SchedulePage() {
   if (!mounted) return null;
 
   return (
-    <div className="w-full h-full bg-base-200 flex flex-col p-6 lg:p-10 select-none overflow-y-auto">
-      <div className="max-w-350 mx-auto w-full flex flex-col gap-8 h-full">
-
-        <div className={`p-6 rounded-4xl bg-base-200 ${neoFlat} flex flex-col gap-4 shrink-0`}>
-
-          <div className="flex items-center justify-between gap-4">
-            <div className={`px-4 py-2 rounded-xl bg-base-200 ${neoInset} flex items-center gap-3 shrink-0 opacity-60`}>
-              <Clock size={16} className="text-base-content/40" />
-              <span className="text-lg font-mono font-black tracking-tighter italic">{time}</span>
-            </div>
-
-            <div className={`
-              hidden md:flex items-center gap-2
-              px-4 py-2 rounded-xl bg-base-200 ${neoInset} 
-              border-l-2 border-primary/30 shrink-0 opacity-60
-            `}>
-              <span className="text-xs font-black text-primary font-mono">{selectedDateKey}</span>
-            </div>
-          </div>
-
-          <div className="w-full relative">
-            <div className="flex items-center gap-2 mb-3 ml-2">
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
-              <div className="w-12 h-0.5 bg-linear-to-r from-primary/50 to-transparent" />
-              <label className="text-[11px] font-black uppercase text-primary tracking-[0.25em] animate-pulse">
-                Thông báo             </label>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 bg-primary/5 rounded-3xl blur-xl" />
-
-              <div className={`
-                relative p-6 rounded-3xl
-                bg-linear-to-br from-base-200 via-base-200 to-base-300/30
-                ${neoFlat}
-                border-2 border-primary/20
-                transition-all duration-500
-                hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10
-                group
-              `}>
-                {activeNote ? (
-                  <div className="flex items-start gap-4">
-                    <div className="mt-1 shrink-0">
-                      <div className={`w-8 h-8 rounded-lg bg-primary/10 ${neoInset} flex items-center justify-center`}>
-                        <span className="text-primary text-lg">»</span>
-                      </div>
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-bold text-base-content leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all duration-300">
-                        {activeNote.content}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <div className="text-xs font-black uppercase tracking-wider opacity-20 italic">
-                      Không có thông báo
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+    <div className="flex-1 flex flex-col lg:flex-row bg-ui-bg overflow-hidden font-sans antialiased text-ui-text-main">
+      
+      {/* LEFT COLUMN: NAVIGATION & CALENDAR */}
+      <aside className="w-full lg:w-80 flex flex-col bg-ui-bg select-none border-r border-ui-border">
+        
+        {/* HEADER SECTION */}
+        <div className="py-10 px-8 space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">Lịch trình</h1>
+          <div className="flex items-center gap-2 text-xs font-medium text-ui-text-muted">
+            <Clock size={14} className="text-ui-text-muted" />
+            <span className="tabular-nums">{time}</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch flex-1 min-h-0">
-
-          <div className={`lg:col-span-5 p-8 rounded-4xl bg-base-200 ${neoFlat} flex flex-col h-full`}>
-            <div className="flex justify-between items-center mb-8 px-2 shrink-0">
-              <div>
-                <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-base-content/30">Calender</h4>
-                <h2 className="text-xl font-black uppercase tracking-tighter">
-                  {currentDate.toLocaleString('default', { month: 'long' })} <span className="text-primary">{calendarData.year}</span>
-                </h2>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setCurrentDate(new Date(calendarData.year, calendarData.month - 1))}
-                  className={`w-10 h-10 rounded-xl bg-base-200 flex items-center justify-center transition-all ${neoFlat} ${neoPressed}`}
+        {/* CALENDAR CARD */}
+        <div className="px-6 pb-8">
+          <div className="bg-ui-card border border-ui-border rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-6 px-1">
+              <span className="text-sm font-semibold capitalize">
+                {currentDate.toLocaleString('default', { month: 'long' })}
+                <span className="ml-2 text-ui-text-muted font-normal">{calendarData.year}</span>
+              </span>
+              <div className="flex gap-1">
+                <button 
+                  onClick={() => setCurrentDate(new Date(calendarData.year, calendarData.month - 1))} 
+                  className="p-1.5 rounded-lg hover:bg-ui-border/20 text-ui-text-muted transition-colors"
                 >
                   <ChevronLeft size={18} />
                 </button>
-                <button
-                  onClick={() => setCurrentDate(new Date(calendarData.year, calendarData.month + 1))}
-                  className={`w-10 h-10 rounded-xl bg-base-200 flex items-center justify-center transition-all ${neoFlat} ${neoPressed}`}
+                <button 
+                  onClick={() => setCurrentDate(new Date(calendarData.year, calendarData.month + 1))} 
+                  className="p-1.5 rounded-lg hover:bg-ui-border/20 text-ui-text-muted transition-colors"
                 >
                   <ChevronRight size={18} />
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-7 gap-3 flex-1 content-start">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-                <div key={d} className="text-center text-[9px] font-black uppercase opacity-20 mb-2 tracking-[0.2em]">{d}</div>
+            <div className="grid grid-cols-7 gap-1">
+              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
+                <div key={i} className="py-2 text-[10px] font-bold text-center text-ui-text-muted/50 uppercase tracking-tighter">
+                  {day}
+                </div>
               ))}
-
+              
               {Array.from({ length: calendarData.adjustedFirstDay }).map((_, i) => (
                 <div key={`empty-${i}`} className="aspect-square" />
               ))}
-
+              
               {Array.from({ length: calendarData.daysInMonth }).map((_, i) => {
                 const day = i + 1;
                 const dKey = `${calendarData.year}-${String(calendarData.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -203,73 +153,74 @@ export default function SchedulePage() {
 
                 return (
                   <button
-                    key={day}
+                    key={dKey}
                     onClick={() => setSelectedDateKey(dKey)}
                     className={`
-                      aspect-square rounded-2xl flex flex-col items-center justify-center transition-all duration-300 relative
-                      ${isSelected
-                        ? `bg-base-200 ${neoInset} text-primary scale-95 font-black`
-                        : `${neoFlat} hover:scale-105 text-base-content/70`
-                      }
-                      ${isToday && !isSelected ? "ring-1 ring-primary/30" : ""}
+                      aspect-square flex flex-col items-center justify-center transition-all relative text-sm rounded-xl
+                      ${isSelected 
+                        ? "bg-brand-primary text-white font-bold shadow-md shadow-brand-primary/20" 
+                        : "hover:bg-ui-border/10 text-ui-text-muted font-medium"}
                     `}
                   >
-                    <span className="text-xs">{day}</span>
+                    {isToday && !isSelected && (
+                      <div className="absolute top-1.5 w-1 h-1 rounded-full bg-brand-primary" />
+                    )}
+                    <span>{day}</span>
                     {hasNote && !isSelected && (
-                      <div className="absolute bottom-2 w-1 h-1 rounded-full bg-primary/40 shadow-[0_0_8px_rgba(var(--p),0.5)]" />
+                      <div className="absolute bottom-1.5 w-1 h-1 rounded-full bg-ui-text-muted/30" />
                     )}
                   </button>
                 );
               })}
             </div>
+          </div>
+        </div>
+      </aside>
 
-            <div className={`mt-8 p-4 rounded-2xl bg-base-200 ${neoInset} flex justify-around shrink-0`}>
-              <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> <span className="text-[9px] font-black uppercase tracking-widest opacity-40">Active</span></div>
-              <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-base-content/20" /> <span className="text-[9px] font-black uppercase tracking-widest opacity-40">Empty</span></div>
+      {/* RIGHT COLUMN: CONTENT EDITOR */}
+      <main className="flex-1 flex flex-col bg-ui-bg">
+        {/* EDITOR HEADER */}
+        <div className="h-24 px-8 flex items-center justify-between border-b border-ui-border bg-ui-bg/50 backdrop-blur-md sticky top-0 z-10">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-ui-card border border-ui-border flex items-center justify-center rounded-2xl text-ui-text-muted">
+              <CalendarIcon size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-ui-text-muted uppercase tracking-widest">Ghi chú ngày</p>
+              <h2 className="text-xl font-bold tracking-tight">{selectedDateKey}</h2>
             </div>
           </div>
 
-          <div className={`lg:col-span-7 p-8 rounded-4xl bg-base-200 ${neoFlat} flex flex-col h-full`}>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 px-2 shrink-0">
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-2xl bg-base-200 ${neoInset} flex items-center justify-center text-primary`}>
-                  <Edit3 size={20} />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase opacity-30 tracking-[0.3em] block">Ghi chú của bạn</label>
-                  <h3 className="text-lg font-black tracking-tight uppercase">{selectedDateKey}</h3>
-                </div>
-              </div>
+          <button
+            onClick={saveNote}
+            disabled={isSaving}
+            className="flex items-center gap-2 px-5 py-2.5 bg-brand-primary text-white rounded-xl font-semibold text-sm hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
+          >
+            {isSaving ? (
+              <Clock size={16} className="animate-spin" />
+            ) : (
+              <Save size={16} />
+            )}
+            <span>{isSaving ? "Đang lưu..." : "Lưu bản ghi"}</span>
+          </button>
+        </div>
 
-              <button
-                onClick={saveNote}
-                className={`w-full md:w-auto px-8 py-3 rounded-2xl bg-base-200 ${neoFlat} ${neoPressed} flex gap-3 items-center justify-center transition-all group`}
-              >
-                <Save size={18} className={`${isSaving ? "animate-spin text-primary" : "text-base-content/40 group-hover:text-primary transition-colors"}`} />
-                <span className="text-[11px] font-black uppercase tracking-[0.2em]">Lưu</span>
-              </button>
+        {/* TEXT AREA CARD */}
+        <div className="flex-1 p-8 overflow-y-auto">
+          <div className="max-w-4xl mx-auto h-full flex flex-col bg-ui-card border border-ui-border rounded-2xl p-8 shadow-sm">
+            <div className="flex items-center gap-2 mb-6 text-ui-text-muted/40">
+              <FileText size={14} />
+              <span className="text-xs font-medium uppercase tracking-widest">DeepWhale Content Canvas</span>
             </div>
-
             <textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
-              placeholder="Tạo ghi chú..."
-              className={`flex-1 w-full p-8 rounded-4xl bg-base-200 ${neoInset} outline-none resize-none text-sm font-medium leading-relaxed text-base-content/80 placeholder:opacity-10 focus:ring-1 focus:ring-primary/5 transition-all scrollbar-hide`}
+              placeholder="Bắt đầu ghi lại ý tưởng cho ngày hôm nay..."
+              className="flex-1 w-full bg-transparent outline-none resize-none text-lg leading-relaxed text-ui-text-main placeholder:text-ui-text-muted/20 font-normal"
             />
-
-            <div className="mt-6 flex justify-between items-center px-4 shrink-0">
-              <div className="flex items-center gap-2">
-                <AlertCircle size={12} className="opacity-20" />
-                <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-20">OPFS-Node</span>
-              </div>
-              {activeNote && (
-                <span className="text-[9px] font-mono opacity-20 uppercase">Updated: {activeNote.updatedAt}</span>
-              )}
-            </div>
           </div>
-
         </div>
-      </div>
+      </main>
     </div>
   );
 }
