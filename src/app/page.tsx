@@ -6,7 +6,6 @@ import {
   ChevronRight, 
   Clock, 
   Save,
-  FileText,
   Calendar as CalendarIcon
 } from "lucide-react";
 
@@ -95,47 +94,47 @@ export default function SchedulePage() {
   if (!mounted) return null;
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row bg-ui-bg overflow-hidden font-sans antialiased text-ui-text-main">
+    <div className="flex flex-col lg:flex-row h-full w-full bg-[var(--color-ui-bg)] overflow-hidden">
       
-      {/* LEFT COLUMN: NAVIGATION & CALENDAR */}
-      <aside className="w-full lg:w-80 flex flex-col bg-ui-bg select-none border-r border-ui-border">
+      {/* LEFT COLUMN: CALENDAR NAVIGATION */}
+      <aside className="w-full lg:w-72 flex flex-col border-r border-[var(--color-ui-border)] bg-[var(--color-ui-bg)]">
         
-        {/* HEADER SECTION */}
-        <div className="py-10 px-8 space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Lịch trình</h1>
-          <div className="flex items-center gap-2 text-xs font-medium text-ui-text-muted">
-            <Clock size={14} className="text-ui-text-muted" />
-            <span className="tabular-nums">{time}</span>
+        {/* TOP INFO */}
+        <div className="p-6 pb-2">
+          <h1 className="!mt-0 !mb-1">Lịch trình</h1>
+          <div className="flex items-center gap-2 text-[var(--color-ui-text-subtle)]">
+            <Clock size={14} />
+            <span className="text-[11px] font-bold tabular-nums uppercase tracking-wider">{time}</span>
           </div>
         </div>
 
-        {/* CALENDAR CARD */}
-        <div className="px-6 pb-8">
-          <div className="bg-ui-card border border-ui-border rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-6 px-1">
-              <span className="text-sm font-semibold capitalize">
+        {/* CALENDAR */}
+        <div className="p-4">
+          <div className="ui-card !p-3">
+            <div className="flex items-center justify-between mb-4">
+              <h5 className="!mb-0 capitalize">
                 {currentDate.toLocaleString('default', { month: 'long' })}
-                <span className="ml-2 text-ui-text-muted font-normal">{calendarData.year}</span>
-              </span>
-              <div className="flex gap-1">
+                <span className="ml-1 opacity-50 font-normal">{calendarData.year}</span>
+              </h5>
+              <div className="flex gap-0.5">
                 <button 
                   onClick={() => setCurrentDate(new Date(calendarData.year, calendarData.month - 1))} 
-                  className="p-1.5 rounded-lg hover:bg-ui-border/20 text-ui-text-muted transition-colors"
+                  className="p-1 rounded hover:bg-[var(--color-ui-border)] text-[var(--color-icon-muted)]"
                 >
-                  <ChevronLeft size={18} />
+                  <ChevronLeft size={16} />
                 </button>
                 <button 
                   onClick={() => setCurrentDate(new Date(calendarData.year, calendarData.month + 1))} 
-                  className="p-1.5 rounded-lg hover:bg-ui-border/20 text-ui-text-muted transition-colors"
+                  className="p-1 rounded hover:bg-[var(--color-ui-border)] text-[var(--color-icon-muted)]"
                 >
-                  <ChevronRight size={18} />
+                  <ChevronRight size={16} />
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-px">
               {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
-                <div key={i} className="py-2 text-[10px] font-bold text-center text-ui-text-muted/50 uppercase tracking-tighter">
+                <div key={i} className="py-1 text-[9px] font-bold text-center text-[var(--color-ui-text-subtle)] opacity-50 uppercase">
                   {day}
                 </div>
               ))}
@@ -156,18 +155,18 @@ export default function SchedulePage() {
                     key={dKey}
                     onClick={() => setSelectedDateKey(dKey)}
                     className={`
-                      aspect-square flex flex-col items-center justify-center transition-all relative text-sm rounded-xl
+                      aspect-square flex items-center justify-center transition-all relative text-[13px] rounded-md
                       ${isSelected 
-                        ? "bg-brand-primary text-white font-bold shadow-md shadow-brand-primary/20" 
-                        : "hover:bg-ui-border/10 text-ui-text-muted font-medium"}
+                        ? "bg-[var(--color-brand-primary)] text-white font-bold" 
+                        : "hover:bg-[var(--color-ui-border)] text-[var(--color-ui-text-main)]"}
                     `}
                   >
                     {isToday && !isSelected && (
-                      <div className="absolute top-1.5 w-1 h-1 rounded-full bg-brand-primary" />
+                      <div className="absolute top-1 w-1 h-1 rounded-full bg-[var(--color-brand-primary)]" />
                     )}
                     <span>{day}</span>
                     {hasNote && !isSelected && (
-                      <div className="absolute bottom-1.5 w-1 h-1 rounded-full bg-ui-text-muted/30" />
+                      <div className="absolute bottom-1 w-1 h-1 rounded-full bg-[var(--color-ui-text-subtle)]" />
                     )}
                   </button>
                 );
@@ -177,46 +176,40 @@ export default function SchedulePage() {
         </div>
       </aside>
 
-      {/* RIGHT COLUMN: CONTENT EDITOR */}
-      <main className="flex-1 flex flex-col bg-ui-bg">
-        {/* EDITOR HEADER */}
-        <div className="h-24 px-8 flex items-center justify-between border-b border-ui-border bg-ui-bg/50 backdrop-blur-md sticky top-0 z-10">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-ui-card border border-ui-border flex items-center justify-center rounded-2xl text-ui-text-muted">
-              <CalendarIcon size={20} />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-ui-text-muted uppercase tracking-widest">Ghi chú ngày</p>
-              <h2 className="text-xl font-bold tracking-tight">{selectedDateKey}</h2>
-            </div>
+      {/* RIGHT COLUMN: CANVAS EDITOR */}
+      <main className="flex-1 flex flex-col min-w-0">
+        
+        {/* EDITOR CONTROLS */}
+        <div className="flex items-center justify-between px-6 h-14 border-b border-[var(--color-ui-border)] bg-[var(--color-ui-card)]">
+          <div className="flex items-center gap-3">
+            <CalendarIcon size={18} className="text-[var(--color-icon-muted)]" />
+            <h3 className="!mt-0 !mb-0 text-[var(--color-ui-text-main)]">
+              {selectedDateKey}
+            </h3>
           </div>
 
           <button
             onClick={saveNote}
             disabled={isSaving}
-            className="flex items-center gap-2 px-5 py-2.5 bg-brand-primary text-white rounded-xl font-semibold text-sm hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
+            className={`
+              flex items-center gap-2 px-4 h-9 rounded-md font-semibold text-[13px] transition-all
+              bg-[var(--color-brand-primary)] text-white hover:opacity-90 active:scale-95 disabled:opacity-50
+            `}
           >
-            {isSaving ? (
-              <Clock size={16} className="animate-spin" />
-            ) : (
-              <Save size={16} />
-            )}
-            <span>{isSaving ? "Đang lưu..." : "Lưu bản ghi"}</span>
+            {isSaving ? <Clock size={14} className="animate-spin" /> : <Save size={14} />}
+            {isSaving ? "Đang lưu" : "Lưu bản ghi"}
           </button>
         </div>
 
-        {/* TEXT AREA CARD */}
-        <div className="flex-1 p-8 overflow-y-auto">
-          <div className="max-w-4xl mx-auto h-full flex flex-col bg-ui-card border border-ui-border rounded-2xl p-8 shadow-sm">
-            <div className="flex items-center gap-2 mb-6 text-ui-text-muted/40">
-              <FileText size={14} />
-              <span className="text-xs font-medium uppercase tracking-widest">DeepWhale Content Canvas</span>
-            </div>
+        {/* EDITOR AREA */}
+        <div className="flex-1 p-6 lg:p-10 overflow-y-auto">
+          <div className="max-w-3xl mx-auto h-full flex flex-col">
+            <h6>Ghi chú của bạn</h6>
             <textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
-              placeholder="Bắt đầu ghi lại ý tưởng cho ngày hôm nay..."
-              className="flex-1 w-full bg-transparent outline-none resize-none text-lg leading-relaxed text-ui-text-main placeholder:text-ui-text-muted/20 font-normal"
+              placeholder="Bắt đầu ghi lại ý tưởng..."
+              className="flex-1 w-full bg-transparent outline-none resize-none text-base leading-relaxed text-[var(--color-ui-text-main)] placeholder:text-[var(--color-ui-text-subtle)] font-normal py-4"
             />
           </div>
         </div>

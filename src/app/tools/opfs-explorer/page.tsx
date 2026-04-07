@@ -7,7 +7,6 @@ import {
   Trash2, 
   Upload, 
   RefreshCw, 
-  Home, 
   X, 
   Save, 
   ChevronRight, 
@@ -42,8 +41,6 @@ async function getDirHandle(path: Path, create = false) {
   return dir;
 }
 
-/* ================= COMPONENT ================= */
-
 export default function OPFSExplorer() {
   const [tree, setTree] = useState<FileNode[]>([]);
   const [currentPath, setCurrentPath] = useState<Path>([]);
@@ -56,21 +53,11 @@ export default function OPFSExplorer() {
   } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const folderInputRef = useRef<HTMLInputElement>(null);
-
-  const neoFlat = "shadow-[5px_5px_10px_rgba(0,0,0,0.1),-5px_-5px_10px_rgba(255,255,255,0.5)]";
-  const neoInset = "shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.5)]";
-  const neoPressed = "active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.1),inset_-2px_-2px_5px_rgba(255,255,255,0.5)] transition-all duration-200";
-
-  /* ================= LOAD TREE (UPDATED WITH FILTER) ================= */
 
   const readDirectory = useCallback(async (dirHandle: FileSystemDirectoryHandle): Promise<FileNode[]> => {
     const entries: FileNode[] = [];
-    
     for await (const [name, handle] of dirHandle.entries()) {
-      // Logic lọc: Không hiển thị thư mục bắt đầu bằng "system" hoặc "SYSTEM"
       const isSystemFolder = handle.kind === "directory" && name.toLowerCase().startsWith("system");
-      
       if (isSystemFolder) continue;
 
       if (handle.kind === "directory") {
@@ -83,9 +70,8 @@ export default function OPFSExplorer() {
         entries.push({ name, type: "file" });
       }
     }
-    
     return entries.sort((a, b) =>
-      a.type === b.type ? a.name.localeCompare(a.name) : a.type === "folder" ? -1 : 1
+      a.type === b.type ? a.name.localeCompare(b.name) : a.type === "folder" ? -1 : 1
     );
   }, []);
 
@@ -105,8 +91,6 @@ export default function OPFSExplorer() {
   useEffect(() => {
     loadTree();
   }, [loadTree]);
-
-  /* ================= ACTIONS ================= */
 
   const handleCreate = async (type: NodeType) => {
     const name = prompt(`Nhập tên ${type === "folder" ? "thư mục" : "tập tin"}:`);
@@ -142,13 +126,7 @@ export default function OPFSExplorer() {
       const files = Array.from(e.target.files) as WebkitFile[];
       const targetDir = await getDirHandle(currentPath, true);
       for (const file of files) {
-        const parts = file.webkitRelativePath ? file.webkitRelativePath.split("/") : [file.name];
-        let current = targetDir;
-        for (let i = 0; i < parts.length - 1; i++) {
-          current = await current.getDirectoryHandle(parts[i], { create: true });
-        }
-        const fileName = parts[parts.length - 1];
-        const fileHandle = await current.getFileHandle(fileName, { create: true });
+        const fileHandle = await targetDir.getFileHandle(file.name, { create: true });
         const writable = await fileHandle.createWritable();
         await writable.write(file);
         await writable.close();
@@ -190,8 +168,6 @@ export default function OPFSExplorer() {
     );
   };
 
-  /* ================= RENDER TREE ================= */
-
   const renderTree = (nodes: FileNode[], path: Path = []) => {
     return nodes.map((node) => {
       const fullPath = [...path, node.name];
@@ -200,39 +176,41 @@ export default function OPFSExplorer() {
       const isSelected = currentPath.join("/") === key;
 
       return (
-        <div key={key} className="flex flex-col mb-2">
+        <div key={key} className="flex flex-col">
           <div 
             onClick={() => node.type === 'folder' ? toggleFolder(key, fullPath) : openFile(path, node.name)}
-            className={`group flex items-center justify-between px-4 py-3 rounded-2xl cursor-pointer transition-all duration-300
-              ${isSelected ? `bg-base-200 ${neoInset} text-primary font-bold` : `hover:scale-[1.01] text-base-content/70`}`}
+            className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors group mb-0.5
+              ${isSelected ? "bg-[var(--color-brand-primary)]/10 text-[var(--color-brand-primary)]" : "hover:bg-[var(--color-ui-border)]/30"}`}
           >
-            <div className="flex items-center gap-3 overflow-hidden">
+            <div className="flex items-center gap-2 overflow-hidden">
               {node.type === "folder" ? (
                 <>
-                  <div className="opacity-50">
+                  <div className="text-[var(--color-ui-text-subtle)]">
                     {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                   </div>
-                  <Folder size={18} className={`${isExpanded ? "text-primary" : "text-base-content/40"}`} />
+                  <Folder size={16} className={isExpanded ? "text-[var(--color-brand-primary)]" : "text-[var(--color-icon-muted)]"} />
                 </>
               ) : (
                 <>
-                  <span className="w-4" /> 
-                  <FileText size={18} className="text-base-content/40" />
+                  <span className="w-3.5" /> 
+                  <FileText size={16} className="text-[var(--color-icon-muted)]" />
                 </>
               )}
-              <span className="truncate text-[11px] font-black uppercase tracking-wider">{node.name}</span>
+              <span className={`text-[13px] truncate ${isSelected ? 'font-semibold' : 'text-[var(--color-ui-text-main)]'}`}>
+                {node.name}
+              </span>
             </div>
 
             <button 
               onClick={(e) => handleDelete(e, path, node.name, node.type)}
-              className={`p-2 rounded-xl text-error opacity-0 group-hover:opacity-100 transition-all ${neoFlat} ${neoPressed}`}
+              className="opacity-0 group-hover:opacity-100 p-1 text-[var(--color-ui-text-subtle)] hover:text-[var(--color-state-error)] transition-all"
             >
-              <Trash2 size={14} />
+              <Trash2 size={12} />
             </button>
           </div>
 
           {node.type === "folder" && isExpanded && node.children && (
-            <div className="ml-6 mt-2 border-l border-base-content/5 pl-2 space-y-1">
+            <div className="ml-4 border-l border-[var(--color-ui-border)] pl-1">
               {renderTree(node.children, fullPath)}
             </div>
           )}
@@ -241,121 +219,99 @@ export default function OPFSExplorer() {
     });
   };
 
-  /* ================= UI ================= */
-
   return (
-    <div className="min-h-screen bg-base-200 p-6 md:p-10 text-base-content select-none">
-      <div className="max-w-6xl mx-auto space-y-10">
-        
-        {/* HEADER PANEL */}
-        <div className={`p-8 rounded-[2rem] bg-base-200 ${neoFlat}`}>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-2">
-              <h1 className="text-2xl font-black uppercase tracking-widest flex items-center gap-3">
-                <div className={`p-3 rounded-2xl bg-base-200 ${neoFlat}`}>
-                    <Folder className="text-primary" size={20} />
-                </div>
-                OPFS <span className="text-primary">Explorer</span>
-              </h1>
-              {/* <div className="flex items-center gap-2">
-                <span className="h-1 w-8 bg-primary rounded-full opacity-50"></span>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-30">Protocol v0.0.1</p>
-              </div> */}
+    <div className="flex flex-col h-full bg-[var(--color-ui-bg)]">
+      {/* TOOLBAR */}
+      <div className="h-14 px-6 border-b border-[var(--color-ui-border)] flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="flex flex-col">
+            <h5 className="!mb-0 uppercase tracking-widest text-[11px]">OPFS Storage</h5>
+            <div className="flex items-center gap-2 text-[10px] text-[var(--color-ui-text-subtle)] font-mono">
+              <FolderRoot size={10} />
+              <span>/{currentPath.join("/") || "root"}</span>
             </div>
-            
-            <div className="flex items-center gap-4">
-              <button onClick={() => setCurrentPath([])} className={`p-4 rounded-2xl bg-base-200 ${neoFlat} ${neoPressed}`} title="Root">
-                <FolderRoot size={18} />
-              </button>
-              <button onClick={loadTree} className={`p-4 rounded-2xl bg-base-200 ${neoFlat} ${neoPressed} ${loading ? 'animate-spin opacity-50' : ''}`}>
-                <RefreshCw size={18} />
-              </button>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-4 mt-10">
-            <button onClick={() => handleCreate("folder")} className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 bg-base-200 ${neoFlat} ${neoPressed}`}>
-              <FolderPlus size={16} className="text-primary" /> Thư mục
-            </button>
-            <button onClick={() => handleCreate("file")} className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 bg-base-200 ${neoFlat} ${neoPressed}`}>
-              <FilePlus size={16} className="text-primary" /> File
-            </button>
-            <button onClick={() => fileInputRef.current?.click()} className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 bg-base-200 ${neoFlat} ${neoPressed}`}>
-              <Upload size={16} className="text-primary" /> Upload
-            </button>
-          </div>
-
-          <div className={`mt-8 px-5 py-3 rounded-2xl text-[10px] font-mono flex items-center gap-3 bg-base-200 ${neoInset}`}>
-            <span className="opacity-30 font-black tracking-widest uppercase">Location:</span>
-            <span className="text-primary font-black tracking-widest uppercase">/{currentPath.join("/") || "root"}</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          <div className={`lg:col-span-4 rounded-[2rem] bg-base-200 h-[650px] flex flex-col overflow-hidden ${neoFlat}`}>
-            <div className="p-6 border-b border-base-content/5">
-              <label className="text-[10px] font-black opacity-30 uppercase tracking-[0.3em]">Directory Tree</label>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 no-scrollbar">
-              {tree.length === 0 && !loading ? (
-                <div className="flex flex-col items-center justify-center h-full opacity-10 gap-3">
-                  <Folder size={48} strokeWidth={1} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Void Storage</span>
-                </div>
-              ) : (
-                renderTree(tree)
-              )}
-            </div>
-          </div>
-
-          <div className={`lg:col-span-8 rounded-[2rem] bg-base-200 h-[650px] flex flex-col overflow-hidden ${neoFlat}`}>
-            {editingFile ? (
-              <>
-                <div className="p-6 border-b border-base-content/5 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl bg-base-200 ${neoInset}`}>
-                        <FileText size={16} className="text-primary" />
-                    </div>
-                    <span className="text-[11px] font-black uppercase tracking-widest text-base-content">{editingFile.name}</span>
-                  </div>
-                  <div className="flex gap-4">
-                    <button onClick={saveFile} className={`p-3 rounded-2xl text-primary bg-base-200 ${neoFlat} ${neoPressed}`}>
-                      <Save size={18} />
-                    </button>
-                    <button onClick={() => setEditingFile(null)} className={`p-3 rounded-2xl text-error bg-base-200 ${neoFlat} ${neoPressed}`}>
-                      <X size={18} />
-                    </button>
-                  </div>
-                </div>
-                <div className="flex-1 p-8">
-                  <textarea
-                    value={editingFile.content}
-                    onChange={(e) => setEditingFile({ ...editingFile, content: e.target.value })}
-                    className={`w-full h-full p-6 font-mono text-[12px] resize-none focus:outline-none rounded-[2rem] bg-base-200 leading-relaxed text-base-content/80 ${neoInset}`}
-                    spellCheck="false"
-                    placeholder="// Initialize content..."
-                  />
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full gap-8 opacity-20">
-                <div className={`p-12 rounded-[3rem] bg-base-200 ${neoFlat}`}>
-                   <FileText size={80} strokeWidth={1} />
-                </div>
-                <p className="text-[10px] font-black uppercase tracking-[0.4em]">Ready for protocol</p>
-              </div>
-            )}
-          </div>
+        <div className="flex items-center gap-2">
+          <button onClick={loadTree} className="p-2 hover:bg-[var(--color-ui-border)]/40 rounded-md transition-colors text-[var(--color-icon-muted)]">
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+          </button>
+          <div className="w-[1px] h-4 bg-[var(--color-ui-border)] mx-1" />
+          <button onClick={() => handleCreate("folder")} className="p-2 hover:bg-[var(--color-ui-border)]/40 rounded-md transition-colors text-[var(--color-brand-primary)]" title="New Folder">
+            <FolderPlus size={16} />
+          </button>
+          <button onClick={() => handleCreate("file")} className="p-2 hover:bg-[var(--color-ui-border)]/40 rounded-md transition-colors text-[var(--color-brand-primary)]" title="New File">
+            <FilePlus size={16} />
+          </button>
+          <button onClick={() => fileInputRef.current?.click()} className="p-2 hover:bg-[var(--color-ui-border)]/40 rounded-md transition-colors text-[var(--color-icon-muted)]" title="Upload">
+            <Upload size={16} />
+          </button>
         </div>
-
-        <input type="file" multiple ref={fileInputRef} onChange={handleUpload} className="hidden" />
-        <input type="file" ref={folderInputRef} onChange={handleUpload} className="hidden" {...({ webkitdirectory: "" } as any)} />
       </div>
 
-      <style jsx global>{`
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
+      {/* EXPLORER LAYOUT */}
+      <div className="flex-1 flex min-h-0 overflow-hidden">
+        {/* SIDEBAR TREE */}
+        <aside className="w-72 border-r border-[var(--color-ui-border)] flex flex-col bg-[var(--color-ui-bg)]">
+          <div className="p-3">
+            <h6>Hệ thống tệp tin</h6>
+          </div>
+          <div className="flex-1 overflow-y-auto px-3 pb-6 custom-scrollbar">
+            {tree.length === 0 && !loading ? (
+              <div className="py-10 text-center opacity-40">
+                <Folder size={32} className="mx-auto mb-2" strokeWidth={1.5} />
+                <p className="text-[10px] uppercase tracking-tighter">Trống</p>
+              </div>
+            ) : (
+              renderTree(tree)
+            )}
+          </div>
+        </aside>
+
+        {/* EDITOR AREA */}
+        <main className="flex-1 flex flex-col bg-[var(--color-ui-bg)]">
+          {editingFile ? (
+            <div className="flex flex-col h-full animate-in fade-in duration-200">
+              <div className="h-12 px-6 border-b border-[var(--color-ui-border)] flex items-center justify-between bg-[var(--color-ui-card)]/30">
+                <div className="flex items-center gap-2">
+                  <FileText size={14} className="text-[var(--color-brand-primary)]" />
+                  <span className="text-xs font-semibold">{editingFile.name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={saveFile} className="flex items-center gap-2 px-3 py-1.5 bg-[var(--color-ui-text-main)] text-[var(--color-ui-bg)] rounded-md text-[10px] font-bold uppercase tracking-wider hover:opacity-90">
+                    <Save size={12} />
+                    <span>Lưu</span>
+                  </button>
+                  <button onClick={() => setEditingFile(null)} className="p-1.5 hover:bg-[var(--color-ui-border)] rounded-md">
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 p-6 overflow-hidden">
+                <textarea
+                  value={editingFile.content}
+                  onChange={(e) => setEditingFile({ ...editingFile, content: e.target.value })}
+                  className="w-full h-full p-6 bg-[var(--color-ui-card)] border border-[var(--color-ui-border)] rounded-xl text-[13px] font-mono outline-none focus:border-[var(--color-brand-primary)]/40 resize-none custom-scrollbar"
+                  spellCheck="false"
+                  placeholder="// Bắt đầu nhập nội dung..."
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-12">
+              <div className="ui-card-outline p-12 flex flex-col items-center gap-4 opacity-40 max-w-xs">
+                <div className="w-16 h-16 rounded-full border-2 border-dashed border-[var(--color-ui-border)] flex items-center justify-center">
+                  <FileText size={24} />
+                </div>
+                <p className="text-xs">Chọn một tệp tin từ thanh bên để bắt đầu chỉnh sửa hoặc tải lên tệp mới.</p>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+
+      <input type="file" multiple ref={fileInputRef} onChange={handleUpload} className="hidden" />
     </div>
   );
 }

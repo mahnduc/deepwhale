@@ -1,64 +1,115 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@plugin "tailwind-scrollbar-hide";
 @plugin "daisyui" {
   themes: all;
 }
-@plugin "tailwind-scrollbar-hide";
+
 @theme {
+  /* Fonts - Desktop App thường dùng font không chân để tăng độ sắc nét */
   --font-inter: var(--font-inter);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-inter), ui-sans-serif, sans-serif;
-}
 
-@layer base {
-  html {
-    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-inter), ui-sans-serif, sans-serif;
-  }
-}
-
-@theme {
-  /* 1. Nhóm Thương hiệu */
+  /* Colors - Chuyển sang tone xám xanh nhẹ (Slate/Zinc) sẽ tạo cảm giác cao cấp hơn */
   --color-brand-primary: var(--brand-primary);
   --color-brand-secondary: var(--brand-secondary);
-  --color-brand-accent: var(--brand-accent);
-
-  /* 2. Nhóm Trung tính */
+  
   --color-ui-bg: var(--ui-bg);
   --color-ui-card: var(--ui-card);
   --color-ui-border: var(--ui-border);
   --color-ui-text-main: var(--ui-text-main);
   --color-ui-text-muted: var(--ui-text-muted);
-
-  /* 3. Nhóm Ngữ nghĩa */
-  --color-state-success: var(--state-success);
-  --color-state-error: var(--state-error);
-  --color-state-warning: var(--state-warning);
-  --color-state-info: var(--state-info);
 }
 
 :root {
-  /* Brand */
-  --color-brand-primary: #111111;      /* Không dùng pure black */
-  --color-brand-secondary: #3f3f46;    /* Gray đậm */
-  --color-brand-accent: #18181b;       /* Accent subtle */
+  /* Brand: Đen sâu hơn một chút cho chuyên nghiệp */
+  --brand-primary: #09090b; 
+  
+  /* Background: Apps thường dùng màu nền xám cực nhẹ để các Card trắng nổi bật lên */
+  --ui-bg: #f8f8f9; 
+  --ui-card: #ffffff;
+  --ui-border: #e2e8f0;
 
-  /* Background & Surface */
-  --color-ui-bg: #fafafa;              /* Trắng hơi xám → đỡ chói */
-  --color-ui-card: #ffffff;            /* Card trắng nổi lên */
-  --color-ui-border: #e4e4e7;          /* Border nhẹ, không gắt */
+  --ui-text-main: #18181b;
+  --ui-text-muted: #64748b;
+  --ui-text-subtle: #94a3b8;
 
-  /* Text */
-  --color-ui-text-main: #09090b;       /* Gần đen nhưng dễ đọc hơn */
-  --color-ui-text-muted: #71717a;      /* Gray trung tính */
-  --color-ui-text-subtle: #a1a1aa;     /* Text phụ nhẹ hơn */
+  --state-success: #10b981;
+  --state-error: #ef4444;
+}
 
-  /* State  */
-  --state-success: #16a34a;
-  --state-error: #dc2626;
-  --state-warning: #d97706;
-  --state-info: #2563eb;
+@layer components {
+  .ui-card {
+    background-color: var(--color-ui-card);
+    border: 1px solid var(--color-ui-border);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    transition: all 0.15s ease-in-out;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  .ui-card-interactive {
+    cursor: pointer;
+    background-color: var(--color-ui-card);
+    border: 1px solid var(--color-ui-border);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    transition: all 0.15s ease-in-out;
+    
+    &:hover {
+      border-color: color-mix(in srgb, var(--color-ui-border), black 20%);
+      background-color: #fcfcfc;
+      transform: translateY(-1px); 
+    }
+  }
+
+  .ui-card-outline {
+    border: 1px solid var(--color-ui-border);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background-color: transparent;
+    border-style: dashed;
+  }
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    background-color: var(--color-ui-bg);
+    color: var(--color-ui-text-main);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-ui-text-main);
+    font-family: var(--font-sans); 
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+  }
+
+  h1 { @apply text-xl font-bold mb-3 mt-4; }
+  h2 { @apply text-lg font-semibold mb-2 mt-4; }
+  h3 { @apply text-base font-semibold mb-2 mt-3; }
+  h4 { @apply text-sm font-semibold mb-1 mt-2; }
+  h5 { @apply text-[13px] font-semibold mb-1; }
+  h6 { @apply text-[11px] font-bold uppercase tracking-widest text-ui-text-muted; }
+
+  p {
+    @apply text-sm leading-5 mb-2;
+    color: var(--color-ui-text-main);
+    font-feature-settings: "cv11", "ss01", "tnum"; 
+  }
+
+  a {
+    color: var(--color-state-info);
+    @apply transition-all duration-150 hover:underline underline-offset-4;
+  }
+
+  ul, ol { @apply mb-3 ml-4 text-sm; }
 }

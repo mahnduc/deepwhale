@@ -4,8 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { usePdfProcessor } from './_hooks/usePdfProcessor';
 import ReactMarkdown from 'react-markdown';
 import { 
-  FileText, Trash2, FileUp, Loader2, 
-  Menu, ChevronLeft, Type, Eye, Plus, Terminal
+  Trash2, FileUp, Menu, ChevronLeft, 
+  Eye, Plus, Terminal, Edit3, Save, FileText
 } from 'lucide-react';
 
 const OPFS_DIR = 'to-markdown';
@@ -34,7 +34,7 @@ export default function ToMarkdownPage() {
         }
       }
       setHistory(docs.sort((a, b) => Number(b.id) - Number(a.id)));
-    } catch (e) { console.error("Load OPFS Error:", e); }
+    } catch (e) { console.error("OPFS Load Error", e); }
   }, []);
 
   const saveFile = async (doc: any) => {
@@ -45,7 +45,7 @@ export default function ToMarkdownPage() {
       await writable.write(JSON.stringify(doc));
       await writable.close();
       await loadFiles();
-    } catch (e) { console.error("Save OPFS Error:", e); }
+    } catch (e) { console.error("OPFS Save Error", e); }
   };
 
   const deleteFile = async (id: string) => {
@@ -57,7 +57,7 @@ export default function ToMarkdownPage() {
         setMarkdown("");
       }
       await loadFiles();
-    } catch (e) { console.error("Delete OPFS Error:", e); }
+    } catch (e) { console.error("OPFS Delete Error", e); }
   };
 
   useEffect(() => { loadFiles(); }, [loadFiles]);
@@ -84,36 +84,38 @@ export default function ToMarkdownPage() {
   const activeDoc = history.find(d => d.id === activeId);
 
   return (
-    <div className="flex h-screen bg-base-100 text-base-content antialiased overflow-hidden">
+    <div className="flex h-full bg-[var(--color-ui-bg)] overflow-hidden">
       
-      {/* Sidebar - State-driven Minimalist */}
-      <aside className={`transition-all duration-300 border-r border-base-300 flex flex-col bg-base-100 ${isSidebarOpen ? 'w-72' : 'w-0 opacity-0 overflow-hidden'}`}>
-        <div className="p-6 border-b border-base-300 flex items-center justify-between">
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Tài liệu</span>
-          <button onClick={() => setIsSidebarOpen(false)} className="btn btn-ghost btn-xs btn-square opacity-40 hover:opacity-100">
+      {/* Sidebar Navigation */}
+      <aside className={`shrink-0 transition-all duration-300 border-r border-[var(--color-ui-border)] flex flex-col bg-[var(--color-ui-card)] ${isSidebarOpen ? 'w-72' : 'w-0 opacity-0'}`}>
+        <div className="h-14 px-4 flex items-center justify-between border-b border-[var(--color-ui-border)]">
+          <h6>Tài liệu</h6>
+          <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 hover:bg-[var(--color-ui-bg)] rounded-md text-[var(--color-icon-muted)]">
             <ChevronLeft size={16} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
           {history.length === 0 && (
-            <div className="p-10 text-center opacity-20 text-[10px] font-bold uppercase tracking-widest italic">Registry Empty</div>
+            <div className="ui-card-outline border-dashed text-center py-8">
+              <p className="text-[11px] uppercase tracking-widest text-[var(--color-ui-text-subtle)]">Trống</p>
+            </div>
           )}
           {history.map(doc => (
             <div 
               key={doc.id} 
               onClick={() => { setActiveId(doc.id); setMarkdown(doc.content); setStatus('idle'); }}
-              className={`group flex items-center gap-3 p-4 border-b border-base-300 cursor-pointer transition-colors ${
-                activeId === doc.id ? 'bg-base-200/60' : 'hover:bg-base-200/30'
+              className={`group flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all ${
+                activeId === doc.id ? 'bg-[var(--color-brand-primary)]/10' : 'hover:bg-[var(--color-ui-bg)]'
               }`}
             >
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold truncate ${activeId === doc.id ? 'text-primary' : ''}`}>{doc.name}</p>
-                <p className="text-[10px] font-mono opacity-30 mt-1 uppercase tracking-tighter">{doc.date}</p>
+                <p className={`text-sm font-medium truncate ${activeId === doc.id ? 'text-[var(--color-brand-primary)]' : 'text-[var(--color-ui-text-main)]'}`}>{doc.name}</p>
+                <p className="text-[10px] text-[var(--color-ui-text-subtle)] font-mono">{doc.date}</p>
               </div>
               <button 
                 onClick={(e) => { e.stopPropagation(); deleteFile(doc.id); }} 
-                className="opacity-0 group-hover:opacity-40 hover:opacity-100 hover:text-error transition-all p-1"
+                className="opacity-0 group-hover:opacity-100 p-1.5 text-[var(--color-ui-text-subtle)] hover:text-[var(--color-state-error)] transition-all"
               >
                 <Trash2 size={14} />
               </button>
@@ -121,34 +123,34 @@ export default function ToMarkdownPage() {
           ))}
         </div>
         
-        <div className="p-4 border-t border-base-300">
-           <label className="btn btn-primary btn-sm btn-block rounded-none gap-2 text-[10px] font-black uppercase tracking-widest">
+        <div className="p-4 border-t border-[var(--color-ui-border)]">
+           <label className="flex items-center justify-center gap-2 w-full py-2 bg-[var(--color-brand-primary)] text-white rounded-lg cursor-pointer hover:opacity-90 transition-all text-xs font-bold uppercase tracking-wider">
               <Plus size={14} />
-              Tải PDF Mới
+              Tải PDF
               <input type="file" accept=".pdf" hidden onChange={handleFileChange} />
            </label>
         </div>
       </aside>
 
-      {/* Main Content Area - Content-first */}
-      <main className="flex-1 flex flex-col min-w-0 bg-base-100">
+      {/* Main Viewport */}
+      <main className="flex-1 flex flex-col min-w-0">
         
-        {/* Header - Flat & Sticky */}
-        <header className="h-16 px-6 border-b border-base-300 flex items-center justify-between sticky top-0 bg-base-100/80 backdrop-blur-sm z-10">
+        {/* Navbar */}
+        <header className="h-14 px-6 border-b border-[var(--color-ui-border)] flex items-center justify-between shrink-0 bg-[var(--color-ui-bg)]/80 backdrop-blur-md z-10">
           <div className="flex items-center gap-4 min-w-0">
             {!isSidebarOpen && (
-              <button onClick={() => setIsSidebarOpen(true)} className="btn btn-ghost btn-sm btn-square opacity-40 hover:opacity-100">
+              <button onClick={() => setIsSidebarOpen(true)} className="p-2 hover:bg-[var(--color-ui-border)]/40 rounded-md text-[var(--color-icon-muted)]">
                 <Menu size={18} />
               </button>
             )}
-            <div className="flex flex-col min-w-0">
-              <h1 className="text-sm font-bold truncate tracking-tight">
-                {activeDoc ? activeDoc.name : 'Chưa có tài liệu'}
-              </h1>
+            <div className="flex flex-col">
+              <h4 className="!m-0 truncate max-w-[200px] md:max-w-md">
+                {activeDoc ? activeDoc.name : 'Bộ chuyển đổi Markdown'}
+              </h4>
               {status === 'loading' && (
-                <div className="flex items-center gap-2 text-[9px] text-primary font-black uppercase tracking-widest">
-                  <span className="loading loading-spinner loading-xs h-3 w-3"></span>
-                  Processing {progress}%
+                <div className="flex items-center gap-2 text-[10px] text-[var(--color-brand-primary)] font-bold uppercase">
+                  <span className="w-2 h-2 rounded-full bg-[var(--color-brand-primary)] animate-pulse" />
+                  Đang xử lý {progress}%
                 </div>
               )}
             </div>
@@ -156,61 +158,75 @@ export default function ToMarkdownPage() {
 
           <div className="flex items-center gap-2">
             {activeDoc && (
-              <div className="flex bg-base-200/50 p-1 rounded-none border border-base-300">
+              <div className="flex bg-[var(--color-ui-card)] p-1 rounded-lg border border-[var(--color-ui-border)]">
                 <button 
                   onClick={() => setViewMode('preview')} 
-                  className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'preview' ? 'bg-base-100 shadow-sm' : 'opacity-40 hover:opacity-100'}`}
+                  className={`flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${viewMode === 'preview' ? 'bg-[var(--color-ui-bg)] shadow-sm text-[var(--color-brand-primary)]' : 'text-[var(--color-ui-text-subtle)] hover:text-[var(--color-ui-text-main)]'}`}
                 >
-                  Xem
+                  <Eye size={12} /> Xem
                 </button>
                 <button 
                   onClick={() => setViewMode('edit')} 
-                  className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'edit' ? 'bg-base-100 shadow-sm' : 'opacity-40 hover:opacity-100'}`}
+                  className={`flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${viewMode === 'edit' ? 'bg-[var(--color-ui-bg)] shadow-sm text-[var(--color-brand-primary)]' : 'text-[var(--color-ui-text-subtle)] hover:text-[var(--color-ui-text-main)]'}`}
                 >
-                  Sửa
+                  <Edit3 size={12} /> Sửa
                 </button>
               </div>
             )}
           </div>
         </header>
 
-        {/* Content Feed */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
           {!activeDoc && status !== 'loading' ? (
-            <div className="py-40 flex flex-col items-center justify-center text-center opacity-10 select-none">
-              <Terminal size={64} strokeWidth={1} className="mb-6" />
-              <h2 className="text-[11px] font-black uppercase tracking-[0.5em]">Waiting for Input</h2>
+            <div className="h-full flex flex-col items-center justify-center p-12 text-center">
+              <div className="ui-card-outline p-16 flex flex-col items-center gap-6 max-w-sm opacity-40">
+                <div className="w-20 h-20 rounded-3xl border-2 border-dashed border-[var(--color-ui-border)] flex items-center justify-center">
+                  <Terminal size={32} />
+                </div>
+                <h6 className="!text-[var(--color-ui-text-subtle)]">Sẵn sàng nhập dữ liệu</h6>
+                <p className="text-xs">Tải lên tệp PDF để bắt đầu trích xuất Markdown bằng AI thông qua MarkItDown.</p>
+              </div>
             </div>
           ) : (
-            <div className={`max-w-2xl mx-auto py-12 px-6 transition-opacity duration-300 ${status === 'loading' ? 'opacity-30 blur-sm' : 'opacity-100'}`}>
+            <div className={`max-w-3xl mx-auto py-12 px-6 transition-all duration-500 ${status === 'loading' ? 'opacity-20 blur-xl scale-95' : 'opacity-100'}`}>
               
-              {viewMode === 'edit' ? (
-                <textarea 
-                  className="w-full min-h-[70vh] bg-transparent focus:outline-none text-[15px] leading-relaxed font-mono resize-none border-none p-0"
-                  value={activeDoc?.content || markdown}
-                  onChange={(e) => {
-                    if (!activeId) return;
-                    const newContent = e.target.value;
-                    const updated = { ...activeDoc, content: newContent };
-                    setHistory(prev => prev.map(d => d.id === activeId ? updated : d));
-                    saveFile(updated);
-                  }}
-                  spellCheck={false}
-                  placeholder="Bắt đầu nhập nội dung..."
-                />
-              ) : (
-                <article className="prose prose-sm lg:prose-base prose-slate max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-p:leading-relaxed prose-pre:bg-base-200/50 prose-pre:text-base-content prose-pre:rounded-none">
-                  <ReactMarkdown>{activeDoc?.content || markdown}</ReactMarkdown>
-                </article>
-              )}
+              <div className="ui-card min-h-[70vh] !p-8 shadow-none border-[var(--color-ui-border)]">
+                {viewMode === 'edit' ? (
+                  <textarea 
+                    className="w-full min-h-[60vh] bg-transparent outline-none text-[14px] leading-relaxed font-mono resize-none border-none p-0 text-[var(--color-ui-text-main)]"
+                    value={activeDoc?.content || markdown}
+                    onChange={(e) => {
+                      if (!activeId) return;
+                      const newContent = e.target.value;
+                      const updated = { ...activeDoc, content: newContent };
+                      setHistory(prev => prev.map(d => d.id === activeId ? updated : d));
+                      saveFile(updated);
+                    }}
+                    spellCheck={false}
+                    placeholder="Nhập nội dung Markdown tại đây..."
+                  />
+                ) : (
+                  <article className="prose prose-sm prose-slate max-w-none 
+                    prose-headings:text-[var(--color-ui-text-main)] 
+                    prose-p:text-[var(--color-ui-text-main)]
+                    prose-a:text-[var(--color-state-info)]
+                    prose-pre:bg-[var(--color-ui-bg)] prose-pre:border prose-pre:border-[var(--color-ui-border)]">
+                    <ReactMarkdown>{activeDoc?.content || markdown}</ReactMarkdown>
+                  </article>
+                )}
+              </div>
 
-              {/* Status Footer inside Content Area */}
-              <div className="mt-20 pt-10 border-t border-base-300 flex justify-between items-center opacity-20">
+              {/* Status Footer */}
+              <div className="mt-12 pt-6 border-t border-[var(--color-ui-border)] flex justify-between items-center text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--color-ui-text-subtle)]">
                 <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-success rounded-full"></div>
-                  <span className="text-[8px] font-black uppercase tracking-widest">Local-First Storage</span>
+                  <span className="w-1.5 h-1.5 bg-[var(--color-state-success)] rounded-full shadow-[0_0_8px_var(--color-state-success)]" />
+                  <span>Local-First Node</span>
                 </div>
-                <span className="text-[8px] font-black uppercase tracking-widest">Protocol: MarkItDown/DeepWhale</span>
+                <div className="flex gap-4">
+                  <span>MarkItDown Protocol</span>
+                  <span>DeepWhale AI Agent</span>
+                </div>
               </div>
 
             </div>
