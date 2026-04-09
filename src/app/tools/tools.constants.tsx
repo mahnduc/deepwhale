@@ -1,5 +1,5 @@
 // src/constants/tools.constants.tsx
-import { Code2, Folder, Key, SquaresSubtract } from "lucide-react";
+import { Code2, Folder, Key, SquaresSubtract, BookAIcon } from "lucide-react";
 import { ToolItem } from "./tool.types";
 
 export const TOOLS_LIST: ToolItem[] = [
@@ -9,6 +9,13 @@ export const TOOLS_LIST: ToolItem[] = [
     path: "opfs-explorer", 
     description: "Trình quản lý thư mục ảo.", 
     icon: <Folder size={22} /> 
+  },
+  { 
+    id: 3, 
+    name: "Markitdown", 
+    path: "markitdown", 
+    description: "Chuyển đổi tài liệu.", 
+    icon: <BookAIcon size={22} /> 
   },
   { 
     id: 4, 

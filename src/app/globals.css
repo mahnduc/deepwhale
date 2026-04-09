@@ -6,12 +6,10 @@
 }
 
 @theme {
-  /* Fonts - Desktop App thường dùng font không chân để tăng độ sắc nét */
   --font-inter: var(--font-inter);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-inter), ui-sans-serif, sans-serif;
 
-  /* Colors - Chuyển sang tone xám xanh nhẹ (Slate/Zinc) sẽ tạo cảm giác cao cấp hơn */
   --color-brand-primary: var(--brand-primary);
   --color-brand-secondary: var(--brand-secondary);
   
@@ -23,10 +21,8 @@
 }
 
 :root {
-  /* Brand: Đen sâu hơn một chút cho chuyên nghiệp */
   --brand-primary: #09090b; 
-  
-  /* Background: Apps thường dùng màu nền xám cực nhẹ để các Card trắng nổi bật lên */
+
   --ui-bg: #f8f8f9; 
   --ui-card: #ffffff;
   --ui-border: #e2e8f0;
