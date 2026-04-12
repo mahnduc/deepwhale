@@ -2,18 +2,18 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-  Trash2,
   Settings,
   Send,
   Plus,
   Bot,
   User,
   MessageSquare,
-  PanelLeftClose,
-  PanelLeftOpen,
+  History,
+  ChevronDown,
+  Sparkles,
 } from "lucide-react";
 
-import SettingsModal from "./_components/SettingsModal";
+import ChatTools from "./_components/ChatTools";
 import { useChatAgent } from "./_hooks/useChatAgent";
 
 const MODELS = [
@@ -25,11 +25,12 @@ export default function PenguChat() {
   const [input, setInput] = useState("");
   const [selectedModel, setSelectedModel] = useState(MODELS[0].id);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(true);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [tempPrompt, setTempPrompt] = useState("");
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const historyRef = useRef<HTMLDivElement>(null);
 
   const {
     messages,
@@ -46,36 +47,38 @@ export default function PenguChat() {
 
   const currentConv = conversations.find((c) => c.id === currentConvId);
 
-  // --- Logic Khởi tạo & OPFS (Giữ nguyên) ---
-  const loadFromOPFS = async () => {
-    try {
-      const root = await navigator.storage.getDirectory();
-      const dirHandle = await root.getDirectoryHandle("system-key-test");
-      const fileHandle = await dirHandle.getFileHandle("test_groq_key.json");
-      const file = await fileHandle.getFile();
-      const content = await file.text();
-      return JSON.parse(content);
-    } catch (error) { return null; }
-  };
+  // Xử lý đóng menu lịch sử khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (historyRef.current && !historyRef.current.contains(event.target as Node)) {
+        setIsHistoryOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
+  // Khởi tạo Auth
   useEffect(() => {
     const initializeAuth = async () => {
       await init();
       const savedKey = localStorage.getItem("pengu_groq_key");
-      if (savedKey) { setApiKey(savedKey); return; }
-      const opfsConfig = await loadFromOPFS();
-      if (opfsConfig?.apiKey) {
-        setApiKey(opfsConfig.apiKey);
-        localStorage.setItem("pengu_groq_key", opfsConfig.apiKey);
-        if (opfsConfig.lastActiveConv) setCurrentConvId(opfsConfig.lastActiveConv);
-      } else { setIsModalOpen(true); }
+      if (savedKey) {
+        setApiKey(savedKey);
+        return;
+      }
+      setIsModalOpen(true);
     };
     initializeAuth();
   }, []);
 
-  useEffect(() => { if (currentConvId) loadMessages(currentConvId); }, [currentConvId]);
-  useEffect(() => { if (currentConv) setTempPrompt(currentConv.system_prompt); }, [currentConv]);
-  useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, isLoading]);
+  useEffect(() => {
+    if (currentConvId) loadMessages(currentConvId);
+  }, [currentConvId]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isLoading]);
 
   const handleSend = () => {
     if (!input.trim() || !apiKey) {
@@ -86,148 +89,141 @@ export default function PenguChat() {
     setInput("");
   };
 
-  const saveToOPFS = async () => {
-    try {
-      const root = await navigator.storage.getDirectory();
-      const dirHandle = await root.getDirectoryHandle("system-key-test", { create: true });
-      const fileHandle = await dirHandle.getFileHandle("test_groq_key.json", { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(JSON.stringify({ apiKey, lastActiveConv: currentConvId, timestamp: new Date().toISOString() }));
-      await writable.close();
-      alert("Đã đồng bộ OPFS!");
-    } catch (error) { alert("Lỗi ghi OPFS"); }
-  };
-
   return (
-    <div className="flex h-screen w-full bg-[var(--color-ui-bg)] overflow-hidden font-sans">
-      {/* SIDEBAR */}
-      <aside
-        className={`fixed inset-y-0 left-0 lg:relative border-r border-[var(--color-ui-border)] transition-all duration-300 flex flex-col z-40 bg-[var(--color-ui-bg)] ${
-          isHistoryOpen ? "w-72 translate-x-0" : "w-0 -translate-x-full lg:hidden"
-        }`}
-      >
-        <div className="flex flex-col h-full w-72 p-4 space-y-4">
-          <button
-            onClick={createConversation}
-            className="flex items-center justify-center gap-2 py-3 bg-[var(--color-brand-primary)] text-white rounded-lg text-xs font-bold transition-transform active:scale-95"
-          >
-            <Plus size={16} />
-            <h6>NEW AGENT</h6>
-          </button>
+    <div className="flex-1 min-w-0 h-full relative flex flex-col bg-[var(--color-ui-bg)] overflow-hidden">
+      {/* VÙNG HIỂN THỊ TIN NHẮN */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar flex flex-col">
+        <div className="flex-1 w-full max-w-4xl mx-auto p-4 md:p-6 lg:p-8">
+          {messages.length === 0 && !isLoading && (
+            <div className="flex-1 flex flex-col items-center justify-center animate-in fade-in duration-500 py-20">
+              <div className="w-12 h-12 bg-[var(--color-brand-primary)] rounded-xl flex items-center justify-center mb-4 shadow-sm">
+                <Bot size={24} className="text-white" />
+              </div>
+              <h1 className="!mt-0 !mb-2 font-bold text-2xl">Pengu Assistant</h1>
+              <p className="text-[var(--color-ui-text-muted)] text-center max-w-sm">
+                Bắt đầu một cuộc hội thoại mới bằng cách nhập tin nhắn phía dưới.
+              </p>
+            </div>
+          )}
 
-          <nav className="flex-1 overflow-y-auto space-y-2 custom-scrollbar">
-            {conversations.map((c) => (
+          <div className="space-y-6">
+            {messages.map((m, i) => (
               <div
-                key={c.id}
-                onClick={() => setCurrentConvId(c.id)}
-                className={`ui-card-interactive flex items-center gap-3 !p-3 ${
-                  c.id === currentConvId ? "border-[var(--color-brand-primary)] bg-[var(--color-ui-card)]" : ""
-                }`}
+                key={i}
+                className={`flex gap-4 ${
+                  m.role === "user" ? "flex-row-reverse" : "flex-row"
+                } animate-in fade-in slide-in-from-bottom-2`}
               >
-                <MessageSquare size={16} className="text-[var(--color-icon-muted)]" />
-                <span className="flex-1 text-sm truncate font-medium">{c.title}</span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); deleteConversation(c.id); }}
-                  className="text-[var(--color-ui-text-subtle)] hover:text-[var(--color-state-error)]"
+                <div
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-sm ${
+                    m.role === "user"
+                      ? "bg-[var(--color-ui-text-main)] text-[var(--color-ui-bg)]"
+                      : "bg-[var(--color-brand-primary)] text-white"
+                  }`}
                 >
-                  <Trash2 size={14} />
-                </button>
+                  {m.role === "user" ? <User size={16} /> : <Bot size={16} />}
+                </div>
+                <div
+                  className={`ui-card !p-3.5 max-w-[85%] md:max-w-[75%] ${
+                    m.role === "user"
+                      ? "!bg-[var(--color-ui-card)]"
+                      : "!bg-transparent border-none !shadow-none !p-1 flex-1"
+                  }`}
+                >
+                  <p className="!mb-0 leading-relaxed whitespace-pre-wrap">
+                    {m.content}
+                  </p>
+                </div>
               </div>
             ))}
-          </nav>
-        </div>
-      </aside>
 
-      {/* MAIN CONTENT AREA */}
-      <main className="flex-1 min-w-0 h-full relative flex flex-col overflow-hidden">
-        {/* TOP BAR */}
-        <header className="h-16 flex items-center justify-between px-6 border-b border-[var(--color-ui-border)] bg-[var(--color-ui-card)]">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsHistoryOpen(!isHistoryOpen)} 
-              className="p-2 hover:bg-[var(--color-ui-bg)] rounded-md text-[var(--color-icon-main)]"
-            >
-              {isHistoryOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
-            </button>
-            <div className="min-w-0">
-              <h5>{currentConv?.title || "Assistant"}</h5>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-[var(--color-brand-primary)] font-bold tracking-tighter uppercase">
-                  {selectedModel}
-                </span>
+            {isLoading && (
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-lg bg-[var(--color-brand-primary)] text-white flex items-center justify-center shrink-0">
+                  <Bot size={16} />
+                </div>
+                <div className="ui-card-outline !p-3 flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand-primary)] animate-bounce" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand-primary)] animate-bounce [animation-delay:0.2s]" />
+                </div>
               </div>
-            </div>
+            )}
+            <div ref={scrollRef} className="h-4" />
           </div>
-
-          <div className="flex items-center gap-3">
-            <select
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              className="text-[11px] bg-[var(--color-ui-bg)] border border-[var(--color-ui-border)] rounded-md px-2 py-1.5 font-bold outline-none"
-            >
-              {MODELS.map((m) => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="p-2 text-[var(--color-icon-main)] hover:bg-[var(--color-ui-bg)] rounded-md transition-colors"
-            >
-              <Settings size={20} />
-            </button>
-          </div>
-        </header>
-
-        {/* CHAT VIEWPORT */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-[var(--color-ui-bg)]">
-          {messages.length === 0 && !isLoading && (
-            <div className="h-full flex flex-col items-center justify-center">
-              <div className="ui-card-outline flex flex-col items-center p-12 max-w-sm text-center">
-                <Bot size={40} className="text-[var(--color-brand-primary)] mb-4" />
-                <h6>DEEPWHALE TERMINAL</h6>
-                <p className="text-[var(--color-ui-text-muted)] mt-2">Hệ thống đã sẵn sàng. Hãy bắt đầu một phiên hội thoại mới.</p>
-              </div>
-            </div>
-          )}
-
-          {messages.map((m, i) => (
-            <div key={i} className={`flex gap-4 ${m.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 shadow-sm ${
-                m.role === "user" ? "bg-[var(--color-brand-primary)] text-white" : "bg-[var(--color-ui-card)] border border-[var(--color-ui-border)] text-[var(--color-brand-primary)]"
-              }`}>
-                {m.role === "user" ? <User size={18} /> : <Bot size={18} />}
-              </div>
-              <div className={`ui-card !py-3 !px-4 max-w-[85%] lg:max-w-[70%] ${
-                m.role === "user" ? "bg-[var(--color-brand-primary)] !text-white border-none shadow-md" : ""
-              }`}>
-                <p className={m.role === "user" ? "text-white" : "text-[var(--color-ui-text-main)]"}>
-                  {m.content}
-                </p>
-              </div>
-            </div>
-          ))}
-
-          {isLoading && (
-            <div className="flex gap-4">
-              <div className="w-9 h-9 rounded-lg bg-[var(--color-ui-card)] border border-[var(--color-ui-border)] flex items-center justify-center animate-pulse">
-                <Bot size={18} className="text-[var(--color-icon-muted)]" />
-              </div>
-              <div className="ui-card-outline !py-3 !px-4 animate-pulse">
-                <p className="italic text-[var(--color-ui-text-subtle)] text-xs">Agent đang xử lý...</p>
-              </div>
-            </div>
-          )}
-          <div ref={scrollRef} />
         </div>
 
-        {/* INPUT AREA */}
-        <div className="p-6 bg-[var(--color-ui-bg)] border-t border-[var(--color-ui-border)]">
-          <div className="max-w-4xl mx-auto flex gap-3 items-end">
-            <div className="flex-1 relative ui-card !p-0 focus-within:border-[var(--color-brand-primary)] transition-colors">
+        {/* VÙNG NHẬP LIỆU (STICKY & CENTERED) */}
+        <div className="sticky bottom-0 w-full z-30">
+          {/* Lớp phủ gradient để nội dung chat biến mất mượt mà khi cuộn */}
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[var(--color-ui-bg)] via-[var(--color-ui-bg)] to-transparent pointer-events-none" />
+
+          <div className="max-w-3xl mx-auto w-full px-4 pb-8 relative">
+            {/* History Popover */}
+            {isHistoryOpen && (
+              <div
+                ref={historyRef}
+                className="absolute bottom-full mb-3 left-4 w-64 ui-card !p-0 shadow-2xl z-50 animate-in slide-in-from-bottom-2 transition-all"
+              >
+                <div className="p-2.5 border-b border-[var(--color-ui-border)] flex items-center justify-between bg-[var(--color-ui-bg)] rounded-t-xl">
+                  <h6 className="!mb-0 text-xs font-bold uppercase tracking-wider opacity-70">
+                    Lịch sử
+                  </h6>
+                  <button
+                    onClick={createConversation}
+                    className="p-1 hover:bg-[var(--color-ui-card)] rounded text-[var(--color-brand-primary)] transition-colors"
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+                <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
+                  {conversations.map((c) => (
+                    <div
+                      key={c.id}
+                      onClick={() => {
+                        setCurrentConvId(c.id);
+                        setIsHistoryOpen(false);
+                      }}
+                      className={`flex items-center gap-2.5 p-2 rounded-md cursor-pointer mb-0.5 transition-all text-xs ${
+                        c.id === currentConvId
+                          ? "bg-[var(--color-brand-primary)] text-white shadow-md shadow-[var(--color-brand-primary)]/20"
+                          : "hover:bg-[var(--color-ui-card)]"
+                      }`}
+                    >
+                      <MessageSquare size={13} className="shrink-0 opacity-60" />
+                      <span className="flex-1 truncate">{c.title}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* THANH INPUT DẠNG CAPSULE */}
+            <div className="ui-card !p-1.5 shadow-2xl flex items-center gap-1 bg-[var(--color-ui-card)] border-[var(--color-ui-border)] rounded-full backdrop-blur-xl relative z-10">
+              {/* Model Selector */}
+              <div className="relative shrink-0 ml-1">
+                <select
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  className="appearance-none bg-transparent text-[10px] font-bold uppercase tracking-wider pl-2 pr-5 py-1.5 cursor-pointer outline-none text-[var(--color-ui-text-muted)] hover:text-[var(--color-ui-text-main)] transition-colors"
+                >
+                  {MODELS.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name.split(" ")[0]}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={10}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none opacity-40"
+                />
+              </div>
+
+              <div className="h-4 w-[1px] bg-[var(--color-ui-border)] shrink-0 mx-1" />
+
               <textarea
-                className="w-full bg-transparent p-4 text-sm outline-none resize-none min-h-[52px] max-h-40"
+                className="flex-1 bg-transparent px-2 py-1.5 text-sm outline-none resize-none max-h-32 min-h-[36px] custom-scrollbar"
                 rows={1}
-                placeholder="Nhập yêu cầu..."
+                placeholder="Hỏi Pengu..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -237,27 +233,51 @@ export default function PenguChat() {
                   }
                 }}
               />
+
+              <div className="flex items-center gap-0.5 shrink-0 px-1">
+                <button
+                  onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+                  className={`p-2 rounded-full transition-colors ${
+                    isHistoryOpen
+                      ? "text-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/10"
+                      : "text-[var(--color-icon-muted)] hover:text-[var(--color-icon-main)] hover:bg-[var(--color-ui-bg)]"
+                  }`}
+                >
+                  <History size={18} />
+                </button>
+
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="p-2 rounded-full text-[var(--color-icon-muted)] hover:text-[var(--color-icon-main)] hover:bg-[var(--color-ui-bg)] transition-colors"
+                >
+                  <Settings size={18} />
+                </button>
+
+                <button
+                  onClick={handleSend}
+                  disabled={!input.trim() || isLoading}
+                  className="ml-1 h-9 w-9 flex items-center justify-center bg-[var(--color-ui-text-main)] text-[var(--color-ui-bg)] rounded-full hover:opacity-90 disabled:opacity-20 transition-all active:scale-95 shrink-0 shadow-sm"
+                >
+                  <Send size={16} />
+                </button>
+              </div>
             </div>
-            <button
-              onClick={handleSend}
-              disabled={!input.trim() || isLoading}
-              className="h-[52px] w-[52px] flex items-center justify-center bg-[var(--color-brand-primary)] text-white rounded-xl hover:opacity-90 disabled:opacity-20 transition-all active:scale-90 shadow-lg"
-            >
-              <Send size={20} />
-            </button>
           </div>
         </div>
-      </main>
+      </div>
 
-      <SettingsModal
+      <ChatTools
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         apiKey={apiKey}
         setApiKey={setApiKey}
         tempPrompt={tempPrompt}
         setTempPrompt={setTempPrompt}
-        onSave={() => { localStorage.setItem("pengu_groq_key", apiKey); setIsModalOpen(false); }}
-        onSaveOPFS={saveToOPFS}
+        onSave={() => {
+          localStorage.setItem("pengu_groq_key", apiKey);
+          setIsModalOpen(false);
+        }}
+        onSaveOPFS={() => {}}
       />
     </div>
   );

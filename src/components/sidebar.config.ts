@@ -1,18 +1,9 @@
 import {
   LayoutDashboard,
-  User,
-  Mail,
   Settings,
-  Folder,
-  BookText,
-  Database,
   Wrench,
-  BotMessageSquare,
-  BookAIcon,
-  Share2,
-  Users,
-  ZodiacVirgo,
   Bot,
+  BookCheckIcon,
 } from "lucide-react";
 
 export const menuItems = [
@@ -30,6 +21,11 @@ export const menuItems = [
     href: "/pengu",
     label: "Pengu",
     icon: Bot,
+  },
+  {
+    href: "/courses",
+    label: "Courses",
+    icon: BookCheckIcon,
   },
 ];
 

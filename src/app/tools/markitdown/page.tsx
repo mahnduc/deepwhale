@@ -16,9 +16,7 @@ export default function MarkitdownTool() {
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-  // =========================
   // HANDLE FILE SELECT
-  // =========================
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
@@ -50,9 +48,7 @@ export default function MarkitdownTool() {
     }
   };
 
-  // =========================
   // CÁCH TIẾP CẬN MỚI: FIX LỖI TYPE
-  // =========================
   const splitPdfByRange = async (originalFile: File, start: number, end: number): Promise<File> => {
     const bytes = await originalFile.arrayBuffer();
     const pdf = await PDFDocument.load(bytes);
@@ -64,19 +60,12 @@ export default function MarkitdownTool() {
 
     const pdfBytes = await newPdf.save();
 
-    /**
-     * CÁCH TIẾP CẬN KHÁC: 
-     * Khởi tạo một Uint8Array mới từ dữ liệu trả về. 
-     * Việc này "chặt đứt" mối liên hệ với SharedArrayBuffer gây lỗi.
-     */
     const cleanBytes = new Uint8Array(pdfBytes);
 
     return new File([cleanBytes], originalFile.name, { type: "application/pdf" });
   };
 
-  // =========================
   // HANDLE UPLOAD & DOWNLOAD
-  // =========================
   const handleUpload = async () => {
     if (!file) return;
     setIsLoading(true);
@@ -109,10 +98,10 @@ export default function MarkitdownTool() {
       a.click();
       window.URL.revokeObjectURL(url);
 
-      setMessage("🎉 Tải file .md thành công!");
+      setMessage("Tải file .md thành công!");
       setStatusType("success");
     } catch (err: any) {
-      setMessage(`❌ Lỗi: ${err.message}`);
+      setMessage(`Lỗi: ${err.message}`);
       setStatusType("error");
     } finally {
       setIsLoading(false);
