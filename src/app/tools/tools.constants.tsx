@@ -17,13 +17,13 @@ export const TOOLS_LIST: ToolItem[] = [
     description: "Chuyển đổi tài liệu.", 
     icon: <BookAIcon size={22} /> 
   },
-  { 
-    id: 4, 
-    name: "Code Executor", 
-    path: "code-executor", 
-    description: "Chạy mã Python trực tiếp trong sandbox.", 
-    icon: <Code2 size={22} /> 
-  },
+  // { 
+  //   id: 4, 
+  //   name: "Code Executor", 
+  //   path: "code-executor", 
+  //   description: "Chạy mã Python trực tiếp trong sandbox.", 
+  //   icon: <Code2 size={22} /> 
+  // },
     { 
     id: 2, 
     name: "toMarkdown", 

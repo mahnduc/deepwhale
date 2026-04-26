@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { Editor } from "@tiptap/react";
 import {
   Bold, Italic, Heading1, Heading2, Heading3,
@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 interface Props {
-  editor: Editor;
+  editor: Editor | null;
 }
 
 interface ToolbarAction {
@@ -49,37 +49,57 @@ const toolbarConfig: ToolbarItem[] = [
 ];
 
 export default function EditorToolbar({ editor }: Props) {
-  // Hàm kiểm tra trạng thái active được tối ưu hóa
-  const checkActive = useCallback((extension: string, attributes?: Record<string, any>) => {
-    return attributes ? editor.isActive(extension, attributes) : editor.isActive(extension);
+  const [, setUpdate] = useState(0);
+
+  useEffect(() => {
+    if (!editor) return;
+    const handler = () => setUpdate((p) => p + 1);
+    editor.on("transaction", handler);
+    return () => { editor.off("transaction", handler); };
   }, [editor]);
 
+  if (!editor) return null;
+
   return (
-    <div className="flex flex-wrap items-center gap-1 px-3 py-2 border-b border-[var(--color-ui-border)] bg-[var(--color-ui-card)] sticky top-0 z-10">
+    <div className="flex flex-wrap items-center gap-1 px-3 py-2 border-b border-[#262626] bg-[#0A0A0A] sticky top-0 z-10">
       {toolbarConfig.map((item, index) => {
         if (item.type === "separator") {
-          return <div key={index} className="w-[1px] h-4 bg-[var(--color-ui-border)] mx-1" />;
+          return <div key={`sep-${index}`} className="w-[1px] h-4 bg-[#262626] mx-1" />;
         }
 
-        const isActive = checkActive(item.extension, item.attributes);
+        const isDisabled = 
+          (item.extension === "undo" && !editor.can().undo()) || 
+          (item.extension === "redo" && !editor.can().redo());
+
+        const isActive = 
+          item.extension !== "undo" && 
+          item.extension !== "redo" && 
+          (item.attributes ? editor.isActive(item.extension, item.attributes) : editor.isActive(item.extension));
 
         return (
           <button
-            key={index}
+            key={`action-${item.title}`}
             type="button"
             onClick={() => item.command(editor)}
-            title={item.title}
-            className={`p-1.5 rounded-md transition-all duration-200 ${
-              isActive
-                ? "bg-[var(--color-brand-primary)]/10 text-[var(--color-brand-primary)] ring-1 ring-[var(--color-brand-primary)]/30 shadow-sm font-bold"
-                : "text-[var(--color-ui-text-muted)] hover:bg-[var(--color-ui-bg)] hover:text-[var(--color-ui-text-main)]"
-            }`}
+            disabled={isDisabled}
+            className={`
+              p-2 rounded-md transition-all duration-200 relative group
+              ${isActive 
+                ? "bg-[#00E5FF] text-black shadow-[0_0_10px_rgba(0,229,255,0.3)]" 
+                : "text-[#717B7A] hover:bg-[#262626] hover:text-white"
+              }
+              ${isDisabled ? "opacity-20 cursor-not-allowed" : "active:scale-95"}
+            `}
           >
             <item.icon 
-              size={16} 
-              strokeWidth={isActive ? 2.5 : 2} 
-              className={`transition-transform ${isActive ? "scale-110" : "scale-100"}`}
+              size={15} 
+              strokeWidth={isActive ? 3 : 2} 
             />
+            
+            {/* Tooltip */}
+            <span className="absolute -bottom-9 left-1/2 -translate-x-1/2 px-2 py-1 bg-[#262626] text-white text-[10px] rounded border border-[#00E5FF]/20 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20 whitespace-nowrap shadow-xl">
+              {item.title}
+            </span>
           </button>
         );
       })}

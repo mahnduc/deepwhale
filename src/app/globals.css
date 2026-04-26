@@ -1,111 +1,20 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @plugin "tailwind-scrollbar-hide";
-@plugin "daisyui" {
-  themes: all;
+
+a {
+  text-decoration: none;
 }
 
-@theme {
-  --font-inter: var(--font-inter);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-inter), ui-sans-serif, sans-serif;
-
-  --color-brand-primary: var(--brand-primary);
-  --color-brand-secondary: var(--brand-secondary);
-  
-  --color-ui-bg: var(--ui-bg);
-  --color-ui-card: var(--ui-card);
-  --color-ui-border: var(--ui-border);
-  --color-ui-text-main: var(--ui-text-main);
-  --color-ui-text-muted: var(--ui-text-muted);
+a:hover {
+  text-decoration: none;
 }
 
-:root {
-  --brand-primary: #09090b; 
-
-  --ui-bg: #f8f8f9; 
-  --ui-card: #ffffff;
-  --ui-border: #e2e8f0;
-
-  --ui-text-main: #18181b;
-  --ui-text-muted: #64748b;
-  --ui-text-subtle: #94a3b8;
-
-  --state-success: #10b981;
-  --state-error: #ef4444;
+::-webkit-scrollbar {
+  display: none;
 }
 
-@layer components {
-  .ui-card {
-    background-color: var(--color-ui-card);
-    border: 1px solid var(--color-ui-border);
-    border-radius: 0.5rem;
-    padding: 1rem;
-    transition: all 0.15s ease-in-out;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  }
-
-  .ui-card-interactive {
-    cursor: pointer;
-    background-color: var(--color-ui-card);
-    border: 1px solid var(--color-ui-border);
-    border-radius: 0.5rem;
-    padding: 1rem;
-    transition: all 0.15s ease-in-out;
-    
-    &:hover {
-      border-color: color-mix(in srgb, var(--color-ui-border), black 20%);
-      background-color: #fcfcfc;
-      transform: translateY(-1px); 
-    }
-  }
-
-  .ui-card-outline {
-    border: 1px solid var(--color-ui-border);
-    border-radius: 0.5rem;
-    padding: 1rem;
-    background-color: transparent;
-    border-style: dashed;
-  }
-}
-
-@layer base {
-  html {
-    font-family: var(--font-sans);
-    background-color: var(--color-ui-bg);
-    color: var(--color-ui-text-main);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    color: var(--color-ui-text-main);
-    font-family: var(--font-sans); 
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    line-height: 1.25;
-  }
-
-  h1 { @apply text-xl font-bold mb-3 mt-4; }
-  h2 { @apply text-lg font-semibold mb-2 mt-4; }
-  h3 { @apply text-base font-semibold mb-2 mt-3; }
-  h4 { @apply text-sm font-semibold mb-1 mt-2; }
-  h5 { @apply text-[13px] font-semibold mb-1; }
-  h6 { @apply text-[11px] font-bold uppercase tracking-widest text-ui-text-muted; }
-
-  p {
-    @apply text-sm leading-5 mb-2;
-    color: var(--color-ui-text-main);
-    font-feature-settings: "cv11", "ss01", "tnum"; 
-  }
-
-  a {
-    color: var(--color-state-info);
-    @apply transition-all duration-150 hover:underline underline-offset-4;
-  }
-
-  ul, ol { @apply mb-3 ml-4 text-sm; }
+html, body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
