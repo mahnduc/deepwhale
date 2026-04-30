@@ -1,50 +1,127 @@
 'use client';
 
-import { User } from "lucide-react";
-import Sidebar from "../../components/sidebar";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { 
+  GraduationCap, BookOpen, Settings, 
+  LayoutDashboard, BotMessageSquare,
+  ChevronUp, ChevronDown 
+} from "lucide-react";
+import { Nunito } from 'next/font/google';
+
+const nunito = Nunito({ 
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '800', '900'],
+  display: 'swap',
+});
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const navItems = [
+    { icon: LayoutDashboard, label: "Trang chủ", href: "/dashboard" },
+    { icon: BookOpen, label: "Học tập", href: "/dashboard/courses" },
+    { icon: BotMessageSquare, label: "Trò chuyện", href: "/dashboard/chatbot" },
+  ];
+
+  if (!mounted) {
+    return <div className="bg-[#F7F9FB] h-screen w-full" />;
+  }
+
   return (
-    <div className="flex h-screen w-full overflow-hidden text-[#717B7A]">
+    <div className={`flex h-screen w-full overflow-hidden bg-[#F7F9FB] text-[#2D3436] ${nunito.className}`}>
+      
       {/* SIDEBAR */}
-      <Sidebar />
+      <aside className="hidden lg:flex w-[240px] border-r border-[#F0F0F0] h-screen bg-white flex-col z-[60] shrink-0 p-4">
+        <div className="h-16 flex items-center px-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#FF3399] rounded-xl flex items-center justify-center shadow-[0_4px_0_#D12A7E]">
+              <GraduationCap size={22} className="text-white" strokeWidth={2.5} />
+            </div>
+            <span className="font-[900] text-xl tracking-tight text-[#FF3399]">STUDYMIND</span>
+          </div>
+        </div>
+
+        <nav className="flex flex-col space-y-2 w-full">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-4 px-4 h-[44px] rounded-xl font-bold transition-all
+                  ${isActive 
+                    ? "bg-[#FFF0F7] text-[#FF3399] border-l-[3px] border-[#FF3399]" 
+                    : "text-[#2D3436] hover:bg-[#F7F9FB]"}`}
+              >
+                <item.icon size={20} strokeWidth={isActive ? 3 : 2.5} className={isActive ? "text-[#FF3399]" : "text-[#B2BEC3]"} />
+                <span className="text-[15px]">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="mt-auto pt-4 border-t border-[#F0F0F0]">
+          <Link href="/dashboard/settings" 
+            className={`flex items-center gap-4 px-4 h-[44px] rounded-xl font-bold transition-all ${
+              pathname === '/dashboard/settings' ? "bg-[#2D3436] text-white" : "text-[#2D3436] hover:bg-[#F7F9FB]"
+            }`}>
+            <Settings size={20} strokeWidth={2.5} className={pathname === '/dashboard/settings' ? "text-white" : "text-[#B2BEC3]"} />
+            <span className="text-[15px]">Cài đặt</span>
+          </Link>
+        </div>
+      </aside>
 
       <div className="flex-1 flex flex-col min-w-0 h-full relative overflow-hidden">
+        
         {/* HEADER */}
-        <header className="h-16 border-b border-[#262626] bg-[#000000] flex justify-between items-center px-8 shrink-0 z-50">
+        <header className={`h-16 border-b border-[#F0F0F0] bg-white flex justify-between items-center px-8 shrink-0 z-50 transition-all duration-300 ease-in-out ${
+          isHeaderVisible ? "mt-0 opacity-100" : "-mt-16 opacity-0 pointer-events-none"
+        }`}>
           <div className="flex items-center gap-4">
-            <div className="h-4 w-[2px] bg-[#00E5FF]"></div>
-            <h1 className="text-lg font-bold tracking-tight uppercase">
-              <span className="text-[#00E5FF]">Xin chào</span>
+            <h1 className="text-sm font-[800] tracking-wider text-[#2D3436] uppercase">
+              XIN CHÀO, <span className="text-[#FF3399]">MẠNH ĐỨC</span>
             </h1>
+            <button 
+              onClick={() => setIsHeaderVisible(false)}
+              className="p-1 hover:bg-[#F7F9FB] rounded-lg text-[#B2BEC3] transition-colors"
+              title="Ẩn thanh tiêu đề"
+            >
+              <ChevronUp size={18} strokeWidth={3} />
+            </button>
           </div>
           
-          <div className="flex items-center space-x-6">
-            <nav className="flex items-center space-x-8">
-              <button className="text-[12px] uppercase tracking-wider text-[#00E5FF] font-bold border-b border-[#00E5FF] pb-1 transition-all">
-                Workspace
-              </button>
-              <Link href="/editor">
-              <button className="text-[12px] uppercase tracking-wider text-[#717B7A] hover:text-[#00E5FF] transition-colors pb-1">
-                Editor
-              </button>
-              </Link>
-            </nav>
-            <Link href="/dashboard/settings">
-            <button className="h-9 w-9 rounded-full border border-[#262626] bg-[#000000] flex items-center justify-center text-[#717B7A] hover:border-[#00E5FF] hover:text-[#00E5FF] transition-all">
-              <User size={18} strokeWidth={1.5} />
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-[#FFF4E0] px-3 py-1.5 rounded-full border-b-2 border-[#FFB800]">
+              <span className="text-orange-500 text-sm font-black">⚡ 1240</span>
+            </div>
+            <button className="h-10 w-10 rounded-full border-2 border-[#E5E5E5] overflow-hidden">
+                <div className="bg-[#B2BEC3] w-full h-full flex items-center justify-center text-white font-bold text-xs">MD</div>
             </button>
-            </Link>
           </div>
         </header>
 
-        {/* MAIN CONTENT AREA */}
-        <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#000000] selection:bg-[#00E5FF] selection:text-[#006064]">
-          <div className="p-8 max-w-7xl mx-auto w-full min-h-[calc(100vh-64px)] flex flex-col">
-            <div className="flex-1 text-[#F5F5F5]">
-              {children}
-            </div>
+        {!isHeaderVisible && (
+          <button 
+            onClick={() => setIsHeaderVisible(true)}
+            className="absolute top-4 right-8 z-[51] bg-white border-2 border-[#E5E5E5] border-b-4 p-2 rounded-2xl text-[#FF3399] shadow-lg hover:translate-y-[2px] hover:border-b-2 transition-all animate-bounce"
+            title="Hiện thanh tiêu đề"
+          >
+            <ChevronDown size={20} strokeWidth={3} />
+          </button>
+        )}
+
+        {/* PHẦN ĐÃ SỬA: Bỏ padding p-6 lg:p-10 và các bo góc thừa */}
+        <main className="flex-1 overflow-y-auto bg-white scroll-smooth flex flex-col">
+          <div className="w-full h-full flex-1">
+            {children}
           </div>
         </main>
       </div>

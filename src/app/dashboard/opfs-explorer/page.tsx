@@ -2,19 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { 
-  Folder, 
-  FileText, 
-  Trash2, 
-  Upload, 
-  RefreshCw, 
-  X, 
-  Save, 
-  FolderPlus,
-  FilePlus,
-  MoreVertical,
-  GripVertical
+  Folder, FileText, Trash2, Upload, RefreshCw, 
+  X, Save, FolderPlus, FilePlus, ChevronRight
 } from "lucide-react";
-
 import { opfsApi } from "../../lib/opfs/opfsApis";
 
 type NodeType = "file" | "folder";
@@ -36,34 +26,9 @@ export default function OPFSExplorer() {
     content: string;
   } | null>(null);
 
-  const [sidebarWidth, setSidebarWidth] = useState(260);
-  const isResizing = useRef(false);
+  const [sidebarWidth] = useState(260);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /* --- RESIZE LOGIC --- */
-  const startResizing = useCallback(() => {
-    isResizing.current = true;
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", stopResizing);
-    document.body.style.cursor = "col-resize";
-  }, []);
-
-  const stopResizing = useCallback(() => {
-    isResizing.current = false;
-    document.removeEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", stopResizing);
-    document.body.style.cursor = "default";
-  }, []);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isResizing.current) return;
-    const newWidth = e.clientX;
-    if (newWidth > 160 && newWidth < 600) {
-      setSidebarWidth(newWidth);
-    }
-  }, []);
-
-  /* --- CORE LOGIC --- */
   const loadTree = useCallback(async () => {
     setLoading(true);
     try {
@@ -78,23 +43,54 @@ export default function OPFSExplorer() {
       };
       setTree(mapNodes(data));
     } catch (error) {
-      console.error("OPFS Load Error:", error);
+      console.error("Lỗi tải cây thư mục:", error);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    loadTree();
-  }, [loadTree]);
+  useEffect(() => { loadTree(); }, [loadTree]);
 
   const handleSaveFile = async () => {
     if (editingFile) {
       try {
         await opfsApi.save(editingFile.path, editingFile.content);
         setEditingFile(null);
-        loadTree();
-      } catch (err) { alert(err); }
+        await loadTree();
+      } catch (err) {
+        alert("Không thể lưu tệp: " + err);
+      }
+    }
+  };
+
+  const handleCreate = async (type: NodeType) => {
+    const name = prompt(`Nhập tên ${type === "folder" ? "thư mục" : "tập tin"}:`);
+    if (!name) return;
+    const cleanPath = currentPath.endsWith("/") ? currentPath : `${currentPath}/`;
+    const fullPath = `${cleanPath}${name}`;
+    try {
+      if (type === "folder") await opfsApi.createFolder(fullPath);
+      else await opfsApi.createEmptyFile(fullPath);
+      if (!expanded.includes(currentPath)) setExpanded(prev => [...prev, currentPath]);
+      await loadTree();
+    } catch (err) { alert("Lỗi tạo mới: " + err); }
+  };
+
+  const openFile = async (path: string, name: string) => {
+    try {
+      const content = await opfsApi.readAsText(path);
+      setEditingFile({ path, name, content });
+    } catch (err) { alert("Lỗi đọc tệp: " + err); }
+  };
+
+  const handleDelete = async () => {
+    if (currentPath === "/") return;
+    if (confirm(`Xóa vĩnh viễn: ${currentPath}?`)) {
+      try {
+        await opfsApi.delete(currentPath, true);
+        setCurrentPath("/");
+        await loadTree();
+      } catch (err) { alert("Lỗi xóa: " + err); }
     }
   };
 
@@ -106,31 +102,11 @@ export default function OPFSExplorer() {
       for (const file of Array.from(e.target.files)) {
         await opfsApi.save(`${cleanPath}${file.name}`, file);
       }
-    } catch (err) { alert("Lỗi upload: " + err); }
-    finally {
+      await loadTree();
+    } catch (err) { alert("Lỗi tải lên: " + err); } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
       setLoading(false);
-      loadTree();
     }
-  };
-
-  const handleCreate = async (type: NodeType) => {
-    const name = prompt(`Nhập tên ${type === "folder" ? "thư mục" : "tập tin"}:`);
-    if (!name) return;
-    const cleanPath = currentPath.endsWith("/") ? currentPath : `${currentPath}/`;
-    const fullPath = `${cleanPath}${name}`;
-    try {
-      type === "folder" ? await opfsApi.createFolder(fullPath) : await opfsApi.createEmptyFile(fullPath);
-      if (!expanded.includes(currentPath)) setExpanded(prev => [...prev, currentPath]);
-      loadTree();
-    } catch (err) { alert("Lỗi: " + err); }
-  };
-
-  const openFile = async (path: string, name: string) => {
-    try {
-      const content = await opfsApi.readAsText(path);
-      setEditingFile({ path, name, content });
-    } catch (err) { alert("Lỗi mở file: " + err); }
   };
 
   const toggleFolder = (path: string) => {
@@ -147,21 +123,22 @@ export default function OPFSExplorer() {
         <div key={node.path} className="flex flex-col">
           <div 
             onClick={() => node.type === 'folder' ? toggleFolder(node.path) : openFile(node.path, node.name)}
-            className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer transition-all duration-200 group rounded-md mb-0.5
-              ${isSelected ? "bg-[#00E5FF]/10 text-[#00E5FF]" : "hover:bg-white/5 text-white/60 hover:text-white"}`}
+            className={`flex items-center gap-2 px-3 py-1.5 cursor-pointer transition-all duration-200 group rounded-lg mb-0.5
+              ${isSelected ? "bg-[#FFF0F7] text-[#FF3399]" : "hover:bg-[#F7F9FB] text-[#2D3436] font-bold"}`}
           >
             {node.type === "folder" ? (
-              <Folder size={14} className={isExpanded ? "text-[#00E5FF] fill-[#00E5FF]/10" : "text-[#717B7A]"} />
+              <Folder size={16} className={isExpanded ? "text-[#FF3399] fill-[#FF3399]/10" : "text-[#B2BEC3]"} />
             ) : (
-              <FileText size={14} className={isSelected ? "text-[#00E5FF]" : "text-[#717B7A]"} />
+              <FileText size={16} className={isSelected ? "text-[#FF3399]" : "text-[#B2BEC3]"} />
             )}
-            <span className={`text-[12px] truncate font-mono tracking-tight ${isSelected ? 'font-bold' : ''}`}>
-              {node.name}
-            </span>
+            <span className="text-[13px] truncate flex-1">{node.name}</span>
+            {node.type === "folder" && (
+              <ChevronRight size={12} className={`transition-transform ${isExpanded ? 'rotate-90' : ''} text-[#B2BEC3]`} />
+            )}
           </div>
           {node.type === "folder" && isExpanded && node.children && (
-            <div className="ml-3 border-l border-[#262626] pl-2 flex flex-col">
-              {node.children.length > 0 ? renderTree(node.children) : <span className="text-[10px] text-[#262626] py-1 pl-4 uppercase">Empty</span>}
+            <div className="ml-4 border-l border-[#E5E5E5] pl-2 flex flex-col">
+              {node.children.length > 0 ? renderTree(node.children) : <span className="text-[10px] text-[#B2BEC3] py-1 pl-4 font-bold">TRỐNG</span>}
             </div>
           )}
         </div>
@@ -170,116 +147,79 @@ export default function OPFSExplorer() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-64px)] w-[calc(100%+64px)] -mx-8 -mt-8 overflow-hidden bg-black font-mono selection:bg-[#00E5FF]/30">
+    /* ĐÃ XÓA VIỀN NGOÀI VÀ BO GÓC CONTAINER */
+    <div className="flex h-full w-full overflow-hidden bg-white">
       
-      {/* --- LEFT SIDEBAR: STICKY --- */}
-      <aside 
-        style={{ width: `${sidebarWidth}px` }}
-        className="flex flex-col shrink-0 bg-[#0A0A0A] border-r border-[#262626] relative group sticky top-0 h-full"
-      >
-        <div className="flex-1 overflow-y-auto px-4 custom-scrollbar pb-6 pt-6">
-          <div className="text-[10px] text-[#717B7A] mb-4 uppercase tracking-[0.2em] font-bold">Explorer</div>
-          {renderTree(tree)}
-        </div>
-
-        {/* Resize Handle */}
-        <div
-          onMouseDown={startResizing}
-          className="absolute right-0 top-0 w-1 h-full cursor-col-resize hover:bg-[#00E5FF]/40 transition-colors flex items-center justify-center group/handle"
-        >
-          <div className="hidden group-hover/handle:block text-[#00E5FF]">
-             <GripVertical size={10} />
-          </div>
+      {/* SIDEBAR TRÁI */}
+      <aside style={{ width: `${sidebarWidth}px` }} className="flex flex-col bg-white border-r border-[#F0F0F0] shrink-0">
+        <div className="p-5 flex-1 overflow-y-auto custom-scrollbar">
+          <h2 className="text-[10px] text-[#B2BEC3] mb-4 font-black uppercase tracking-widest">Hệ thống tệp tin</h2>
+          <div className="space-y-0.5">{renderTree(tree)}</div>
         </div>
       </aside>
 
-      {/* --- CENTER MAIN: EDITOR (Màu nền xám tối giúp chữ trắng nổi bật) --- */}
-      <main className="flex-1 flex flex-col bg-[#050505] relative min-w-0 overflow-y-auto custom-scrollbar">
+      {/* EDITOR CHÍNH */}
+      <main className="flex-1 flex flex-col bg-white min-w-0">
         {editingFile ? (
-          <div className="flex flex-col min-h-full animate-in fade-in duration-300">
-            {/* Header Editor - Sticky top */}
-            <div className="h-12 px-8 flex items-center justify-between shrink-0 border-b border-[#262626] bg-[#050505]/95 backdrop-blur sticky top-0 z-10">
-              <div className="flex items-center gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#00E5FF] shadow-[0_0_8px_#00E5FF]"></div>
-                <span className="text-[11px] text-white font-medium uppercase tracking-wider truncate">
-                  {editingFile.path}
-                </span>
+          <div className="flex flex-col h-full animate-in fade-in duration-200">
+            <div className="h-14 px-6 flex items-center justify-between border-b border-[#F0F0F0]">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-[#00CEC9]"></div>
+                <span className="text-[13px] text-[#2D3436] font-black uppercase tracking-tight">{editingFile.name}</span>
               </div>
-              <button 
-                onClick={() => setEditingFile(null)} 
-                className="p-1 hover:text-[#00E5FF] text-[#717B7A] transition-colors"
-              >
-                <X size={16} />
+              <button onClick={() => setEditingFile(null)} className="p-1.5 hover:bg-[#F7F9FB] rounded-md text-[#B2BEC3] hover:text-[#FF3399] transition-all">
+                <X size={18} strokeWidth={3} />
               </button>
             </div>
-            
-            <div className="flex-1 px-8 py-6">
+            <div className="flex-1 p-6">
               <textarea
                 value={editingFile.content}
                 onChange={(e) => setEditingFile({ ...editingFile, content: e.target.value })}
-                className="w-full h-full min-h-[70vh] bg-transparent border-none outline-none resize-none text-[14px] leading-relaxed font-mono text-white placeholder:text-[#262626]"
-                spellCheck="false"
-                autoFocus
+                className="w-full h-full bg-[#F7F9FB] rounded-xl p-5 outline-none resize-none text-[14px] font-mono text-[#2D3436] border border-[#F0F0F0] focus:border-[#FF3399]/20 transition-all"
+                spellCheck="false" autoFocus
               />
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center select-none min-h-full">
+          <div className="flex-1 flex flex-col items-center justify-center text-[#B2BEC3] bg-[#FDFDFD]">
+            <Folder size={48} strokeWidth={1} className="mb-3 opacity-10" />
+            <p className="font-bold text-[13px] uppercase tracking-widest opacity-40">Chọn tệp để chỉnh sửa</p>
           </div>
         )}
       </main>
 
-      {/* --- RIGHT SIDEBAR: TOOLBAR STICKY --- */}
-      <aside className="w-14 flex flex-col items-center py-6 gap-6 bg-[#0A0A0A] border-l border-[#262626] shrink-0 sticky top-0 h-full">
-        <div className="flex flex-col gap-2">
-          <button 
-            onClick={handleSaveFile} 
-            className={`p-3 transition-all duration-300 rounded-xl ${
-              editingFile 
-                ? "text-[#00E5FF] bg-[#00E5FF]/10 shadow-[0_0_15px_rgba(0,229,255,0.1)]" 
-                : "text-[#262626] cursor-not-allowed"
-            }`}
-            title="Lưu (Save)"
-          >
-            <Save size={20} />
-          </button>
-          
-          <div className="w-6 h-[1px] bg-[#262626] my-2 self-center" />
-
-          <ToolbarButton icon={<FilePlus size={18} />} title="Tệp mới" onClick={() => handleCreate("file")} />
-          <ToolbarButton icon={<FolderPlus size={18} />} title="Thư mục mới" onClick={() => handleCreate("folder")} />
-          <ToolbarButton icon={<Upload size={18} />} title="Tải lên" onClick={() => fileInputRef.current?.click()} />
-          <ToolbarButton icon={<RefreshCw size={18} />} title="Làm mới" onClick={loadTree} loading={loading} />
-        </div>
-
-        <div className="mt-auto flex flex-col gap-4 items-center">
-          <button 
-            onClick={() => {
-                if (currentPath !== "/") {
-                    const confirmDelete = confirm(`Xóa vĩnh viễn: ${currentPath}?`);
-                    if(confirmDelete) opfsApi.delete(currentPath, true).then(loadTree);
-                }
-            }}
-            className="p-3 text-[#717B7A] hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all" title="Xóa">
-            <Trash2 size={18} />
-          </button>
-          <button className="p-3 text-[#262626] hover:text-[#717B7A]">
-            <MoreVertical size={18} />
+      {/* TOOLBAR PHẢI - ĐÃ THU NHỎ ICON VÀ NÚT */}
+      <aside className="w-16 flex flex-col items-center py-6 gap-3 bg-[#F7F9FB] border-l border-[#F0F0F0] shrink-0">
+        <button 
+          onClick={handleSaveFile} disabled={!editingFile}
+          className={`p-3 rounded-xl border-b-2 active:translate-y-0.5 active:border-b-0 transition-all ${editingFile ? "bg-[#00CEC9] text-white border-[#00A8A5] shadow-md" : "bg-white text-[#E5E5E5] border-[#E5E5E5]"}`}
+        >
+          <Save size={20} strokeWidth={2.5} />
+        </button>
+        <div className="w-8 h-[1px] bg-[#E5E5E5] my-1" />
+        <ToolbarButton icon={<FilePlus size={18} />} onClick={() => handleCreate("file")} />
+        <ToolbarButton icon={<FolderPlus size={18} />} onClick={() => handleCreate("folder")} />
+        <ToolbarButton icon={<Upload size={18} />} onClick={() => fileInputRef.current?.click()} />
+        <ToolbarButton icon={<RefreshCw size={18} />} onClick={loadTree} loading={loading} color="text-[#FF3399]" />
+        
+        <div className="mt-auto">
+          <button onClick={handleDelete} className="p-3 text-[#B2BEC3] hover:text-[#FF3399] hover:bg-[#FFF0F7] rounded-xl transition-all">
+            <Trash2 size={20} strokeWidth={2.5} />
           </button>
         </div>
       </aside>
 
       <input type="file" multiple ref={fileInputRef} onChange={handleUpload} className="hidden" />
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #EEE; border-radius: 10px; }
+      `}</style>
     </div>
   );
 }
 
-const ToolbarButton = ({ icon, title, onClick, loading }: { icon: any, title: string, onClick: () => void, loading?: boolean }) => (
-  <button 
-    onClick={onClick} 
-    className={`p-3 text-[#717B7A] hover:text-[#00E5FF] hover:bg-[#00E5FF]/5 rounded-xl transition-all ${loading ? "animate-spin text-[#00E5FF]" : ""}`} 
-    title={title}
-  >
-    {icon}
+const ToolbarButton = ({ icon, onClick, loading, color }: any) => (
+  <button onClick={onClick} className={`p-3 bg-white rounded-xl border border-[#E5E5E5] border-b-[3px] hover:border-[#FF3399]/30 active:translate-y-0.5 active:border-b-px transition-all ${loading ? "animate-spin" : ""}`}>
+    <div className={`${color || "text-[#2D3436]"}`}>{icon}</div>
   </button>
 );
