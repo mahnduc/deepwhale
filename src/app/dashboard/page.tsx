@@ -9,22 +9,16 @@ import {
 import Link from 'next/link';
 
 export default function HomePage() {
-  // LOGIC THỜI GIAN THỰC
   const now = new Date();
   const currentDay = now.getDate();
-  const currentMonth = now.getMonth(); // 0-11
+  const currentMonth = now.getMonth(); 
   const currentYear = now.getFullYear();
 
-  // Lấy tên tháng và năm hiển thị
   const monthDisplay = now.toLocaleString('vi-VN', { month: 'long', year: 'numeric' });
   const todayDisplay = now.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
 
-  // Tính toán số ngày trong tháng hiện tại
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-
-  // Tính toán ngày bắt đầu của tháng để căn chỉnh thứ (tùy chọn nếu muốn lịch chuẩn hơn)
-  // Tuy nhiên để giữ nguyên UI grid-cols-7 cũ, chúng ta giữ mảng days đơn giản.
 
   return (
     <div className="w-full flex flex-col gap-5 p-4 lg:p-6 max-w-[1400px] mx-auto">
@@ -63,12 +57,12 @@ export default function HomePage() {
             {/* Streak - CĂN GIỮA SỐ */}
             <div className="bg-[#2D3436] rounded-[20px] p-5 text-white relative border-b-4 border-black overflow-hidden flex flex-col items-center justify-center text-center">
               <Zap className="absolute -right-2 -top-2 w-16 h-16 text-[#00CEC9] opacity-10" />
-              <span className="text-[#00CEC9] text-[10px] font-black uppercase tracking-[0.2em] mb-2">Hành trình streak</span>
-              <div className="flex items-center gap-3">
+              <span className="text-[#00CEC9] text-[10px] font-black uppercase tracking-[0.2em] mb-2">Tính năng</span>
+              {/* <div className="flex items-center gap-3">
                 <span className="text-5xl font-[900] italic leading-none">36</span>
                 <Flame size={28} className="text-[#FF3399] fill-[#FF3399]" />
-              </div>
-              <p className="text-[11px] font-bold text-[#B2BEC3] mt-2 italic">Duy trì phong độ! 🔥</p>
+              </div> */}
+              <p className="text-[11px] font-bold text-[#B2BEC3] mt-2 italic">Đang chờ phát triển</p>
             </div>
 
             {/* Thông báo nhanh */}

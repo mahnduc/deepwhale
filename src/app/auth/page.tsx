@@ -47,7 +47,6 @@ export default function AuthenticationPage() {
         </div>
       </div>
 
-      {/* BÊN PHẢI: FORM XÁC THỰC */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12">
         <div className="w-full max-w-[400px]">
           {/* Card Container */}

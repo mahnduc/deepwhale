@@ -8,15 +8,16 @@ import {
   ChevronRight,
   ArrowUpRight,
   Sparkles,
-  Zap
+  Zap,
+  Quote,
+  QuoteIcon
 } from 'lucide-react';
 import Link from 'next/link';
 
-export default function UpdatedLandingPage() {
+export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#F7F9FB] font-['Nunito',sans-serif] text-[#2D3436] antialiased">
-      
-      {/* 1. HEADER / NAVIGATION - Tinh gọn chiều cao */}
+
       <nav className="h-16 flex items-center justify-between px-8 md:px-16 bg-white border-b-2 border-[#E5E5E5] sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-[#FF3399] rounded-xl flex items-center justify-center border-b-4 border-[#D12A7E]">
@@ -38,14 +39,13 @@ export default function UpdatedLandingPage() {
         </Link>
       </nav>
 
-      {/* 2. HERO SECTION - Cân đối lại tỉ lệ 7/12 và 5/12 */}
       <section className="max-w-[1100px] mx-auto px-8 py-12 md:py-20">
         <div className="flex flex-col lg:flex-row items-center gap-12">
           <div className="lg:w-7/12 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 bg-[#FFF0F7] border-2 border-[#FF3399] px-3 py-0.5 rounded-full mb-5 shadow-[0_2px_0_0_#FF3399]">
+            {/* <div className="inline-flex items-center gap-2 bg-[#FFF0F7] border-2 border-[#FF3399] px-3 py-0.5 rounded-full mb-5 shadow-[0_2px_0_0_#FF3399]">
               <Sparkles size={12} className="text-[#FF3399]" />
-              <span className="text-[10px] text-[#FF3399] font-black uppercase tracking-wider">Nền tảng mở 100%</span>
-            </div>
+              <span className="text-[10px] text-[#FF3399] font-black uppercase tracking-wider">Mã nguồn mở</span>
+            </div> */}
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-[800] text-[#2D3436] mb-6 leading-[1.1] tracking-tight">
               Kiến tạo tri thức <br /> 
@@ -71,7 +71,6 @@ export default function UpdatedLandingPage() {
             </div>
           </div>
 
-          {/* Illustration Area - Thu gọn kích thước để cân bằng Desktop */}
           <div className="lg:w-5/12 w-full relative flex justify-center items-center">
              <div className="relative w-64 h-64 md:w-80 md:h-80">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-[#FF3399] rounded-[24px] border-b-[6px] border-[#D12A7E] flex items-center justify-center animate-bounce duration-[3000ms]">
@@ -88,17 +87,19 @@ export default function UpdatedLandingPage() {
         </div>
       </section>
 
-      {/* 3. PHILOSOPHY / QUOTE - Giảm padding dọc */}
-      <section className="bg-white border-y-2 border-[#E5E5E5] py-16">
+      <section className="bg-white border-y-2 border-[#E5E5E5] py-52">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-2xl md:text-4xl font-[800] text-[#2D3436] leading-tight tracking-tight">
-            “Kiến thức thuộc về mọi người, <br />
-            <span className="text-[#00CEC9]">học tập thuộc về từng cá nhân.”</span>
-          </h2>
+          <div className="relative inline-block">
+            <Quote className="absolute -top-6 -left-8 text-[#00CEC9]/30" size={36} strokeWidth={2.5} />
+            <h2 className="text-2xl md:text-4xl font-[800] text-[#2D3436] leading-tight tracking-tight">
+              Kiến thức thuộc về mọi người, <br />
+              <span className="text-[#00CEC9]">học tập thuộc về từng cá nhân.</span>
+            </h2>
+            <Quote className="absolute -bottom-6 -right-8 rotate-180 text-[#00CEC9]/30" size={36} strokeWidth={2.5} />
+          </div>
         </div>
       </section>
 
-      {/* 4. FEATURES GRID - Tối ưu Bento cho Desktop */}
       <main className="max-w-[1100px] mx-auto p-8 md:py-20">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           
@@ -176,7 +177,7 @@ export default function UpdatedLandingPage() {
       {/* 6. FOOTER - Tinh giản */}
       <footer className="py-12 text-center bg-white border-t-2 border-[#E5E5E5]">
         <p className="text-[10px] text-[#B2BEC3] font-black uppercase tracking-[0.3em]">
-          © 2026 — Mạnh Đức
+          © 2026
         </p>
       </footer>
     </div>
