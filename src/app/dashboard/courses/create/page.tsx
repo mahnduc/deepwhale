@@ -12,8 +12,7 @@ import {
   Loader2 
 } from "lucide-react";
 
-// Import API xử lý dữ liệu
-import { ingestFromPath } from "@/app/lib/data-ingestion/api";
+import { ingestFromPath } from "@/app/lib/brain/api";
 
 export default function CreateCourse() {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -85,8 +84,6 @@ export default function CreateCourse() {
 
     setIsIngesting(true);
     try {
-      // Đường dẫn file trong cấu trúc OPFS (phải khớp với cách API đọc file)
-      // Lưu ý: api.ts của bạn cần có khả năng truy cập vào thư mục 'my-workspace' trong OPFS
       const filePath = `my-workspace/${selectedFile}`;
       
       const response = await ingestFromPath(filePath);

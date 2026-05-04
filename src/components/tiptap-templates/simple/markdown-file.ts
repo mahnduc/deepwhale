@@ -22,7 +22,7 @@ export const openMarkdownFromPicker = async (): Promise<OpenMarkdownResult | nul
 
     const file = await handle.getFile()
     const content = await file.text()
-
+    
     return {
       content,
       fileName: file.name,
@@ -33,34 +33,34 @@ export const openMarkdownFromPicker = async (): Promise<OpenMarkdownResult | nul
   }
 }
 
-export const downloadMarkdownFile = (
-  markdown: string,
-  filename?: string
-) => {
-  try {
-    const finalFileName =
-      filename?.trim()
-        ? filename.endsWith(".md")
-          ? filename
-          : `${filename}.md`
-        : "document.md"
+// export const downloadMarkdownFile = (
+//   markdown: string,
+//   filename?: string
+// ) => {
+//   try {
+//     const finalFileName =
+//       filename?.trim()
+//         ? filename.endsWith(".md")
+//           ? filename
+//           : `${filename}.md`
+//         : "document.md"
 
-    const blob = new Blob([markdown], {
-      type: "text/markdown;charset=utf-8",
-    })
+//     const blob = new Blob([markdown], {
+//       type: "text/markdown;charset=utf-8",
+//     })
 
-    const url = URL.createObjectURL(blob)
+//     const url = URL.createObjectURL(blob)
 
-    const link = document.createElement("a")
-    link.href = url
-    link.download = finalFileName
+//     const link = document.createElement("a")
+//     link.href = url
+//     link.download = finalFileName
 
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+//     document.body.appendChild(link)
+//     link.click()
+//     document.body.removeChild(link)
 
-    URL.revokeObjectURL(url)
-  } catch (error) {
-    console.error("Download markdown failed:", error)
-  }
-}
+//     URL.revokeObjectURL(url)
+//   } catch (error) {
+//     console.error("Download markdown failed:", error)
+//   }
+// }

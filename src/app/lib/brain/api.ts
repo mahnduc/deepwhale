@@ -13,42 +13,53 @@ async function runTask(filePath: string): Promise<string> {
   const chunker = new MarkdownChunker(600, 100);
 
   try {
-    // 1. Process markdown thành các chunks
+    // 1. Phân tách đường dẫn
+    const pathParts = filePath.split('/');
+    const fileName = pathParts.pop() || 'unknown.md';
+    const folderName = fileName; 
+    
+    // Tên file lưu trữ bên trong folder đó
+    const saveFileName = `chunks.json`; // Bạn có thể đặt tên ngắn gọn vì nó đã nằm trong folder riêng
+    const indexFileName = `bm25_index.json`;
+
+    console.log(`Đang xử lý file: ${fileName} vào thư mục: knowledge/${folderName}`);
+
+    // 2. Process markdown thành chunks
     const chunks = await chunker.processMarkdown(filePath);
-    const baseFileName = filePath.split('/').pop() || 'unknown-file';
+    const chunkForSave = await chunker.exportToJSON(chunks);
 
-    // 2. Lưu các chunks thô vào OPFS (để hiển thị hoặc xử lý sau này)
-    chunker.exportToJSON(chunks, baseFileName)
+    // 3. Truy cập OPFS (Cấu trúc: knowledge > fileName > các file)
+    const root = await navigator.storage.getDirectory();
+    const knowledgeHandle = await root.getDirectoryHandle('knowledge', { create: true });
+    
+    // folderHandle lúc này sẽ có tên trùng với file gốc
+    const folderHandle = await knowledgeHandle.getDirectoryHandle(folderName, { create: true });
 
-    // 3. Index chunks với BM25
+    // --- LƯU FILE CHUNKS ---
+    const chunkFileHandle = await folderHandle.getFileHandle(saveFileName, { create: true });
+    const chunkWritable = await chunkFileHandle.createWritable();
+    await chunkWritable.write(chunkForSave);
+    await chunkWritable.close();
+
+    // 4. Index chunks với BM25
     const searchEngine = new BM25Search(1.5, 0.75);
     searchEngine.indexChunks(chunks);
 
-    // 4. Export Index BM25 và lưu vào OPFS (để tìm kiếm nhanh lần sau)
+    // 5. Export Index BM25
     const indexData = searchEngine.exportIndex();
-    await saveToOPFS(`${baseFileName}_bm25_index.json`, indexData);
-
-    // 5. Test tìm kiếm thử nghiệm (Optional)
-    // const results = searchEngine.search("TCP protocol network", 5);
-    // console.log(`Kết quả test cho ${baseFileName}:`);
-    // console.log(SearchResultFormatter.formatResults(results));
+    
+    // --- LƯU FILE INDEX BM25 ---
+    const indexFileHandle = await folderHandle.getFileHandle(indexFileName, { create: true });
+    const indexWritable = await indexFileHandle.createWritable();
+    const indexContent = typeof indexData === 'string' ? indexData : JSON.stringify(indexData, null, 2);
+    await indexWritable.write(indexContent);
+    await indexWritable.close();
 
     return "ok";
   } catch (error) {
     console.error("Lỗi trong runTask:", error);
     throw error;
   }
-}
-
-/**
- * Hàm hỗ trợ ghi dữ liệu vào OPFS
- */
-async function saveToOPFS(fileName: string, data: any): Promise<void> {
-  const root = await navigator.storage.getDirectory();
-  const fileHandle = await root.getFileHandle(fileName, { create: true });
-  const writable = await fileHandle.createWritable();
-  await writable.write(JSON.stringify(data));
-  await writable.close();
 }
 
 /**

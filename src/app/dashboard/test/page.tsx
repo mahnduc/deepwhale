@@ -1,7 +1,7 @@
 "use client";
 
-import { initializeSearchFromStorage } from "@/app/lib/data-ingestion/api";
-import { BM25Search, SearchResult } from "@/app/lib/data-ingestion/search/BM25Search";
+import { initializeSearchFromStorage } from "@/app/lib/brain/api";
+import { BM25Search, SearchResult } from "@/app/lib/brain/search/BM25Search";
 import { useState, useEffect } from "react";
 
 export default function SearchPage() {

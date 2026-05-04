@@ -71,10 +71,10 @@ import { ThemeToggle } from "@/components/tiptap-templates/simple/theme-toggle"
 import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils"
 
 // --- Styles ---
-import "@/components/tiptap-templates/simple/simple-editor.scss"
+import "./simple-editor.scss"
 
 import { Markdown } from "@tiptap/markdown"
-import { downloadMarkdownFile, openMarkdownFromPicker } from "./markdown-file"
+import { openMarkdownFromPicker } from "./markdown-file"
 import { FileDown, FileSearchCorner, FileUp, MenuSquare, Save, Text, Type } from "lucide-react"
 import SaveFileModal from "./popupSave"
 import { useEditorStore } from "@/store/editorStore"
@@ -238,7 +238,7 @@ export function SimpleEditor() {
         onError: (error) => console.error("Upload failed:", error),
       }),
     ],
-    content: "<p></p>",
+    content: "",
   })
   // open file 
   useEffect(() => {
@@ -247,7 +247,6 @@ export function SimpleEditor() {
 
       try {
         const root = await navigator.storage.getDirectory()
-
         const parts = filePath.split("/").filter(Boolean)
 
         let currentDir: FileSystemDirectoryHandle = root
@@ -268,9 +267,12 @@ export function SimpleEditor() {
 
         const file = await fileHandle.getFile()
         const content = await file.text()
-
-        editor.commands.setContent(content)
-
+        //-------đừng động đến cái này------------
+        editor.commands.setContent(content, {
+          contentType: "markdown",
+          emitUpdate: false,
+        })
+        //----------------------------------------
         setOpfsHandle(fileHandle)
 
         const cleanName =
@@ -340,16 +342,24 @@ export function SimpleEditor() {
     if (!editor) return
     const result = await openMarkdownFromPicker()
     if (!result) return
-    editor.commands.setContent(result.content)
+
+    console.log(result.content)
+    // const cleanContent = result.content.replace(/^\uFEFF/, "")
+
+    editor.commands.setContent(result.content, {
+      contentType: "markdown",
+      emitUpdate: false,
+    })
+
     setFileName(result.fileName.replace(".md", ""))
     setOpfsHandle(null)
   }
 
-  const downloadMarkdown = () => {
-    if (!editor) return
-    const markdown = editor.getMarkdown()
-    downloadMarkdownFile(markdown, fileName)
-  }
+  // const downloadMarkdown = () => {
+  //   if (!editor) return
+  //   const markdown = editor.getMarkdown()
+  //   downloadMarkdownFile(markdown, fileName)
+  // }
   
 // --------------------------------
   const rect = useCursorVisibility({
@@ -394,14 +404,14 @@ export function SimpleEditor() {
               Upload
             </span>
           </div>
-          <div className="relative group flex justify-center">
+          {/* <div className="relative group flex justify-center">
             <button className="p-2 rounded-md hover:bg-gray-100" onClick={downloadMarkdown}>
               <FileDown size={18}/>
             </button>
             <span className="absolute left-12 scale-0 transition-all rounded bg-black p-2 text-xs text-white group-hover:scale-100 whitespace-nowrap">
               Download
             </span>
-          </div>
+          </div> */}
         </div>
 
       </aside>

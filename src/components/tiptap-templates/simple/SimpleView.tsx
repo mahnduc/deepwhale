@@ -25,10 +25,6 @@ import "@/components/tiptap-node/image-node/image-node.scss"
 import "@/components/tiptap-node/heading-node/heading-node.scss"
 import "@/components/tiptap-node/paragraph-node/paragraph-node.scss"
 
-// --- Hooks ---
-import { useIsBreakpoint } from "@/hooks/use-is-breakpoint"
-import { useWindowSize } from "@/hooks/use-window-size"
-
 // --- Lib ---
 import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils"
 
@@ -47,6 +43,7 @@ export function SimpleView({ mdContent }: Props) {
 
   const editor = useEditor({
     immediatelyRender: false,
+    editable: false,
     editorProps: {
       attributes: {
         autocomplete: "off",

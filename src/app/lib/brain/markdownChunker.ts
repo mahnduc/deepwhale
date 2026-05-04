@@ -116,7 +116,6 @@ class MarkdownChunker {
   ): string[] {
     const chunkLine = this.findChunkLineNumber(chunkContent, fullDocument);
 
-    // Lọc headings xuất hiện TRƯỚC hoặc TRONG chunk
     const relevantHeadings = allHeadings.filter((h) => h.line <= chunkLine);
 
     if (relevantHeadings.length === 0) return [];
@@ -281,7 +280,7 @@ class MarkdownChunker {
   /**
    * Xuất chunks ra file JSON
    */
-  async exportToJSON(chunks: ProcessedChunk[], fileName: string): Promise<void> {
+  async exportToJSON(chunks: ProcessedChunk[]): Promise<string> {
     const output = {
       totalChunks: chunks.length,
       averageTokens: chunks.length > 0 
@@ -297,21 +296,7 @@ class MarkdownChunker {
         minChunkSize: this.minChunkSize,
       },
     };
-
-    try {
-      const root = await navigator.storage.getDirectory();
-      const folderHandle = await root.getDirectoryHandle("exports", { create: true });
-      const fileHandle = await folderHandle.getFileHandle(fileName, { create: true });
-      const writable = await fileHandle.createWritable();
-
-      await writable.write(JSON.stringify(output, null, 2));
-      await writable.close();
-
-      console.log(`Đã xuất ${chunks.length} chunks vào OPFS: exports/${fileName}`);
-    } catch (error) {
-      console.error("Lỗi khi ghi vào OPFS:", error);
-      throw error;
-    }
+    return JSON.stringify(output, null, 2);
   }
 
   /**
