@@ -9,7 +9,7 @@ const robotoMono = Roboto_Mono({
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi" className={`${robotoMono.variable} dark`}>
-      <body className="bg-[#000000] antialiased font-mono">
+      <body className="antialiased font-mono">
         {children}
       </body>
     </html>

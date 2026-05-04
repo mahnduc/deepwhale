@@ -1,7 +1,8 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @plugin "tailwind-scrollbar-hide";
-
+@import '../styles/_variables.scss';                                       
+@import '../styles/_keyframe-animations.scss';  
 a {
   text-decoration: none;
 }
