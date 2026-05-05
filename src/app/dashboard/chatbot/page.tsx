@@ -6,6 +6,7 @@ import LeftSidebar from './_components/LeftSidebar';
 import { keyService } from '../settings/api-key/_services/key.service';
 import { ChatMessage } from './_components/ChatMessage';
 import { BotMessage } from './_components/BotMessage';
+import { callGroqChat } from './_service/groq';
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<any[]>([]);
@@ -50,38 +51,23 @@ export default function ChatPage() {
       }
 
       const randomKey = keys[Math.floor(Math.random() * keys.length)];
-
-      // Gọi API
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${randomKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [
-            ...messages.map(m => ({ role: m.role, content: m.content })),
-            { role: 'user', content: userContent }
-          ],
-        }),
-      });
-
-      const data = await response.json();
-
+      
+      // api chat
+      const result = await callGroqChat(randomKey, messages, userContent);
+      
       // Kiểm tra phản hồi từ Server
-      if (!response.ok) {
+      if (!result.ok) {
         setMessages(prev => [...prev, {
           id: Date.now() + 1,
           role: 'assistant',
-          content: `Lỗi hệ thống: ${data.error?.message || 'Không thể nhận phản hồi từ AI.'}`
+          content: `Lỗi hệ thống: ${result.data?.error?.message || 'Không thể nhận phản hồi từ AI.'}`
         }]);
       } else {
         // Thành công
         const aiMessage = {
           id: Date.now() + 1,
           role: 'assistant',
-          content: data.choices[0].message.content,
+          content: result.data.choices[0].message.content,
         };
         setMessages(prev => [...prev, aiMessage]);
       }

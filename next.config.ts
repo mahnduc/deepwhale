@@ -1,11 +1,14 @@
 import type { NextConfig } from "next";
 
+const isGithubActions = process.env.GITHUB_ACTIONS || false;
+const repoName = 'uxie';
+
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   output: 'export', 
-  basePath: '/deepwhale', //tên repo; đường dẫn mặc định /deepwhale
-  assetPrefix: '/deepwhale/',
+  basePath: isGithubActions ? `/${repoName}` : undefined,
+  assetPrefix: isGithubActions ? `/${repoName}/` : undefined,
   trailingSlash: true,
   images: {
     unoptimized: true,
