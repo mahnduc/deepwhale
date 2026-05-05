@@ -6,6 +6,15 @@ const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono" 
 });
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Uxie Platform",
+  description: "Lofi web",
+  icons: {
+    icon: "/uxie.png",
+  },
+};
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi" className={`${robotoMono.variable} dark`}>
