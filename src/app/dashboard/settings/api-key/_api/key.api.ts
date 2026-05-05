@@ -23,5 +23,6 @@ export const keyApi = {
 
   async checkKey(provider: string, key: string) {
     return await keyService.load().then(() => true);
-  }
+  },
+
 };
