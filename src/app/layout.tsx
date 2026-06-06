@@ -9,7 +9,7 @@ const robotoMono = Roboto_Mono({
 import type { Metadata } from "next";
 import EventEmitterInitializer from "@/components/EventEmitterInitializer";
 import LearningCoachPopup from "@/components/LearningCoachPopup";
-import FloatingChat from "@/components/floatingchat/FloatingChat";
+import FloatingWindow from "@/components/floatingchat/FloatingWindow";
 
 export const metadata: Metadata = {
   title: "Uxie Platform",
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="antialiased font-mono">
           <EventEmitterInitializer />
            <LearningCoachPopup />
-           <FloatingChat />
+           <FloatingWindow />
           {children}
       </body>
     </html>

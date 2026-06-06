@@ -146,7 +146,6 @@ class MarkdownChunker {
   private detectContentType(content: string): "text" | "code" | "table" | "list" {
     const trimmed = content.trim();
 
-    // Check code block (ưu tiên cao nhất)
     if (trimmed.includes("```") || /^\s{4,}/m.test(content)) {
       return "code";
     }

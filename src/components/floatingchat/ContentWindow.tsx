@@ -1,152 +1,136 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { QuizLoader } from './quiz-history/QuizLoader';
-import { QuizDetailChart } from './quiz-history/QuizDetailChart';
-import { QuizList } from './quiz-history/QuizList';
-import { ClipboardList } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Telescope, Home, Pencil, History } from 'lucide-react';
+import { Resizable } from 're-resizable';
+import Draggable from 'react-draggable';
+import HistoryPracticeWindow from './HistoryPractice';
+import NoteWindow from './NoteWindow';
 
-interface QuizFileItem {
-  fileName: string;
-  displayName: string;
-  fileHandle: FileSystemFileHandle;
+interface ChatWindowProps {
+  onClose: () => void;
 }
 
-interface QuizAttempt {
-  attemptId: string | number;
-  timestamp: string | number;
-  accuracy: number;
-  score: number;
-  totalQuestions: number;
-  duration: number;
-}
+type ActiveView = 'default' | 'history' | 'note';
 
-interface ChartDataPoint extends QuizAttempt {
-  name: string;
-  displayDate: string;
-  displayTime: string;
-}
-
-interface QuizJsonData {
-  quizFileName: string;
-  attempts: QuizAttempt[];
-}
-
-export default function ContentWindow() {
-  const [quizzes, setQuizzes] = useState<QuizFileItem[]>([]);
-  const [selectedQuiz, setSelectedQuiz] = useState<QuizJsonData | null>(null);
-  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+export default function ContentWindow({ onClose }: ChatWindowProps) {
+  const [mounted, setMounted] = useState(false);
+  const [activeView, setActiveView] = useState<ActiveView>('default');
+  const nodeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    async function scanOPFSHistory() {
-      try {
-        setLoading(true);
-        const root = await navigator.storage.getDirectory();
-        const historyDir = await root.getDirectoryHandle('history_quiz', { create: true });
-        const quizList: QuizFileItem[] = [];
-        
-        for await (const [name, handle] of (historyDir as any).entries()) {
-          if (handle.kind === 'file' && name.endsWith('.json')) {
-            quizList.push({
-              fileName: name,
-              displayName: name.replace('.json', ''),
-              fileHandle: handle as FileSystemFileHandle
-            });
-          }
-        }
-        setQuizzes(quizList);
-      } catch (err) {
-        console.error("Lỗi khi đọc OPFS:", err);
-        setError("Không thể truy cập dữ liệu lịch sử từ OPFS.");
-      } finally {
-        setLoading(false);
-      }
-    }
-    scanOPFSHistory();
+    setMounted(true);
   }, []);
 
-  const handleSelectQuiz = async (quiz: QuizFileItem) => {
-    try {
-      const file = await quiz.fileHandle.getFile();
-      const text = await file.text();
-      const data: QuizJsonData = JSON.parse(text);
-      
-      if (data.attempts && Array.isArray(data.attempts)) {
-        const sortedAttempts: ChartDataPoint[] = [...data.attempts]
-          .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-          .map((attempt, index) => {
-            const date = new Date(attempt.timestamp);
-            return {
-              ...attempt,
-              name: `Lần ${index + 1}`,
-              displayDate: date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
-              displayTime: date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-            };
-          });
-          
-        setSelectedQuiz(data);
-        setChartData(sortedAttempts);
-      } else {
-        alert("File dữ liệu không đúng định dạng lịch sử.");
-      }
-    } catch (err) {
-      console.error("Lỗi khi đọc chi tiết file:", err);
-      alert("Không thể đọc file dữ liệu này.");
-    }
-  };
-
-  if (loading || error) {
-    return <QuizLoader loading={loading} error={error} />;
-  }
+  if (!mounted) return null;
 
   return (
-    /* ĐỔI THÀNH bg-white - Đồng bộ phẳng hoàn toàn */
-    <div className="w-full h-full flex flex-col bg-white font-sans antialiased text-slate-600 selection:bg-emerald-100 selection:text-emerald-900">
-      <div className="flex-1 w-full h-full p-6 overflow-auto custom-scrollbar animate-in fade-in duration-300">
-        
-        {selectedQuiz ? (
-          /* Xóa bỏ border và shadow của khối biểu đồ chi tiết */
-          <div className="w-full bg-white p-2 animate-in slide-in-from-right-4 duration-200">
-            <QuizDetailChart
-              quizTitle={selectedQuiz.quizFileName.replace('.json', '')}
-              chartData={chartData}
-              onBack={() => setSelectedQuiz(null)}
-            />
-          </div>
-        ) : quizzes.length > 0 ? (
-          /* Xóa bỏ border và shadow của khối danh sách bài luyện tập */
-          <div className="w-full bg-white p-2 animate-in slide-in-from-left-4 duration-200">
-            <div className="mb-5">
-              <h2 className="text-base font-bold text-slate-800 tracking-tight">
-                Danh sách bài luyện tập đã làm
-              </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Chọn một bài để xem biểu đồ xu hướng chính xác và thời gian làm bài
-              </p>
+    <Draggable nodeRef={nodeRef} handle=".drag-handle" bounds={false}>
+      <div ref={nodeRef} className="fixed z-50" style={{ top: '10%', left: '20%' }}>
+        <Resizable
+          defaultSize={{ width: 900, height: 600 }}
+          minWidth={450}
+          minHeight={350}
+          maxWidth="200vw"
+          maxHeight="200vh"
+          enable={{
+            top: false, right: true, bottom: true, left: false,
+            topRight: false, bottomRight: true, bottomLeft: false, topLeft: false
+          }}
+          handleClasses={{
+            right: 'cursor-e-resize',
+            bottom: 'cursor-s-resize',
+            bottomRight: 'cursor-se-resize'
+          }}
+        >
+          <div className="w-full h-full bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-slate-800">
+            <div className="drag-handle flex items-center justify-between bg-white px-5 py-4 cursor-grab active:cursor-grabbing select-none shrink-0 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 mr-2">
+                  <Telescope size={16} strokeWidth={2.5} />
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveView('default');
+                  }}
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200 active:scale-95 ${
+                    activeView === 'default'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                  title="Trang chủ"
+                >
+                  <Home size={16} strokeWidth={2.5} />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveView('history');
+                  }}
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200 active:scale-95 ${
+                    activeView === 'history'
+                      ? 'bg-emerald-500 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                  title="Lịch sử luyện tập"
+                >
+                  <History size={16} strokeWidth={2.5} />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveView('note');
+                  }}
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200 active:scale-95 ${
+                    activeView === 'note'
+                      ? 'bg-emerald-400 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                  title="Ghi chú nhanh"
+                >
+                  <Pencil size={16} strokeWidth={2.5} />
+                </button>
+                <div className="flex flex-col min-w-0 ml-2">
+                  <span className="text-sm font-bold tracking-wide text-slate-800">
+                    {activeView === 'default' && "Hỗ trợ"}
+                    {activeView === 'history' && "Lịch sử luyện tập"}
+                    {activeView === 'note' && "Sổ tay ghi chú"}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="group flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-all duration-200 hover:bg-slate-50 hover:text-slate-600 active:scale-95"
+                aria-label="Close"
+              >
+                <X size={16} className="transition-transform group-hover:rotate-90" />
+              </button>
             </div>
-            
-            <QuizList
-              quizzes={quizzes}
-              onSelectQuiz={handleSelectQuiz}
-            />
-          </div>
-        ) : (
-          <div className="h-full flex flex-col items-center justify-center py-16 text-center animate-in zoom-in-95 duration-200">
-            <div className="h-14 w-14 flex items-center justify-center rounded-2xl bg-slate-50 text-slate-400 mb-4 border border-slate-100">
-              <ClipboardList size={26} strokeWidth={1.5} />
+            <div className="flex-1 bg-white overflow-auto custom-scrollbar">
+              {activeView === 'default' && (
+                <div className="w-full h-full flex items-center justify-center p-6 text-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <h2 className="text-xl font-semibold text-slate-700">Công cụ hỗ trợ nhanh</h2>
+                    <p className="text-sm text-slate-400 max-w-sm">
+                      Sử dụng các nút chức năng trên thanh tiêu đề để chuyển đổi giữa Lịch sử và Ghi chú cá nhân.
+                    </p>
+                  </div>
+                </div>
+              )}
+              {activeView === 'history' && <HistoryPracticeWindow />}
+              {activeView === 'note' && <NoteWindow />}
             </div>
-            <h3 className="text-sm font-bold text-slate-700 tracking-wide">
-              Chưa có lịch sử làm bài
-            </h3>
-            <p className="text-xs text-slate-400 max-w-xs mt-1 leading-relaxed">
-              Hãy hoàn thành ít nhất một bài trắc nghiệm để hệ thống bắt đầu theo dõi và phân tích xu hướng học tập nhé!
-            </p>
           </div>
-        )}
-
+        </Resizable>
       </div>
-    </div>
+    </Draggable>
   );
 }

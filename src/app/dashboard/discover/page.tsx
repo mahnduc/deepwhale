@@ -87,7 +87,7 @@ export default function DiscoverPage() {
               selectedFile={selectedFile}
               isIngesting={isIngesting}
               isPending={isPending}
-              handleSelectFile={handleSelectFile} // Truyền trực tiếp hàm sạch từ hook điều phối
+              handleSelectFile={handleSelectFile}
               deleteFile={deleteFile}
             />
 
@@ -100,28 +100,6 @@ export default function DiscoverPage() {
                   </div>
                 ) : (
                   <>
-                    <QuizSummaryCard 
-                      quizData={quizData}
-                      selectedFile={selectedFile}
-                      showToolbar={showToolbar}
-                      handleToggleToolbar={handleToggleToolbar}
-                      handleStartQuiz={handleStartQuiz}
-                    />
-
-                    {showToolbar && (
-                      <QuizToolbar 
-                        isActionDisabled={isActionDisabled}
-                        requestedQuestions={requestedQuestions}
-                        setRequestedQuestions={setRequestedQuestions}
-                        onTriggerCreateQuiz={async () => {
-                          await handleCreateQuiz(requestedQuestions, cleanFolderName);
-                        }}
-                        isPending={isPending}
-                        isGeneratingQuiz={isGeneratingQuiz}
-                        isIngesting={isIngesting}
-                      />
-                    )}
-
                     <div 
                       onClick={() => setIsViewingFileIsland(true)}
                       className="w-full bg-white border border-gray-100 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6 cursor-pointer"
@@ -151,6 +129,29 @@ export default function DiscoverPage() {
                         <ArrowRight size={20} />
                       </div>
                     </div>
+
+                    <QuizSummaryCard 
+                      quizData={quizData}
+                      selectedFile={selectedFile}
+                      showToolbar={showToolbar}
+                      handleToggleToolbar={handleToggleToolbar}
+                      handleStartQuiz={handleStartQuiz}
+                    />
+
+                    {showToolbar && (
+                      <QuizToolbar 
+                        isActionDisabled={isActionDisabled}
+                        requestedQuestions={requestedQuestions}
+                        setRequestedQuestions={setRequestedQuestions}
+                        onTriggerCreateQuiz={async () => {
+                          await handleCreateQuiz(requestedQuestions, cleanFolderName);
+                        }}
+                        isPending={isPending}
+                        isGeneratingQuiz={isGeneratingQuiz}
+                        isIngesting={isIngesting}
+                      />
+                    )}
+
                   </>
                 )}
               </div>

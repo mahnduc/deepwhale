@@ -2,10 +2,10 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
-import { TrendingUpDown } from 'lucide-react'; 
-import ChatWindow from './ChatWindow'; 
+import { Telescope, TrendingUpDown } from 'lucide-react'; 
+import ChatWindow from './ContentWindow'; 
 
-export default function FloatingChat() {
+export default function FloatingWindow() {
   const nodeRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [initialPos, setInitialPos] = useState({ x: 0, y: 0 });
@@ -65,7 +65,7 @@ export default function FloatingChat() {
             ) : (
               <div className="drag-handle w-12 h-12 cursor-grab active:cursor-grabbing">
                 <div className="w-full h-full bg-linear-to-tr from-emerald-500 via-teal-600 to-cyan-600 rounded-full shadow-xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-transform duration-200 ease-out">
-                  <TrendingUpDown size={20} className="stroke-[2.2]" />
+                  <Telescope size={20} className="stroke-[2.2]" />
                 </div>
               </div>
             )}

@@ -9,10 +9,7 @@ import {
   FolderOpen, 
   Bookmark, 
   Plus, 
-  X,
-  ArrowLeft,
-  Trophy,
-  Calendar
+  X
 } from "lucide-react";
 import Link from 'next/link';
 
@@ -22,7 +19,6 @@ import { QuizCard } from './_components/QuizCard';
 import QuizPracticeScreen from '@/components/quiz/QuizPracticeScreen';
 import { SavedQuizData } from '@/lib/rag/qa-generator';
 
-// Import các types chuẩn từ hệ thống của bạn
 import { 
   QuizCardData, 
   QuizHistoryAttempt, 
@@ -119,7 +115,6 @@ export default function LibraryPage() {
     scanOPFSForQuizzes();
   }, []);
 
-  // Xử lý đọc lịch sử chuẩn xác dựa theo định dạng file: [fileName bỏ đuôi]_history.json
   const handleOpenHistory = async (quiz: QuizCardData) => {
     setHistoryQuiz(quiz);
     setLoadingHistory(true);
@@ -127,7 +122,6 @@ export default function LibraryPage() {
       const root = await navigator.storage.getDirectory();
       const historyDirHandle = await root.getDirectoryHandle("history_quiz");
       
-      // Bóc tách chuẩn: "newdesign_quiz.json" -> "newdesign" -> "newdesign_history.json"
       const baseName = quiz.fileName.replace('_quiz.json', '').replace('.json', '');
       const historyFileName = `${baseName}_history.json`;
       
@@ -153,7 +147,6 @@ export default function LibraryPage() {
     }
   };
 
-  /* --- 1. MÀN HÌNH LUYỆN TẬP QUIZ --- */
   if (activeQuiz && activeQuiz.rawContent) {
     const formattedQuizData = activeQuiz.rawContent as unknown as SavedQuizData;
     return (
@@ -209,68 +202,81 @@ export default function LibraryPage() {
   return (
     <div className="w-full flex flex-col gap-8 p-5 lg:p-8 animate-in fade-in duration-500 bg-[#F7F9FB] min-h-screen selection:bg-[#00CEC9]/20 selection:text-[#00b2b0]">
 
-      {/* GLOBAL LOADING STATE */}
+      {/* TRẠNG THÁI LOADING TỔNG THỂ */}
       {isLoadingTotal && (
-        <div className="flex flex-col items-center justify-center text-center py-24 bg-white rounded-2xl border border-[#E5E5E5]">
-          <div className="w-8 h-8 border-3 border-[#00CEC9] border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-xs text-[#B2BEC3] font-black uppercase tracking-wider">Đang cấu trúc lại không gian lưu trữ cục bộ...</p>
+        <div className="flex flex-col items-center justify-center text-center py-32 bg-white rounded-2xl border-2 border-[#E5E5E5] shadow-sm max-w-xl mx-auto w-full mt-12 animate-pulse">
+          <div className="relative flex items-center justify-center mb-5">
+            <div className="w-12 h-12 border-4 border-[#00CEC9]/20 border-t-[#00CEC9] rounded-full animate-spin"></div>
+            <div className="absolute w-6 h-6 border-4 border-transparent border-b-[#FF3399] rounded-full animate-spin [animation-duration:0.8s] reverse"></div>
+          </div>
+          <h3 className="text-sm font-black text-[#2D3436] uppercase tracking-wider mb-1">Hệ thống đang xử lý</h3>
+          <p className="text-xs text-[#B2BEC3] font-semibold uppercase tracking-wide px-6">Đang cấu trúc lại không gian lưu trữ cục bộ...</p>
         </div>
       )}
 
-      {/* MAIN RENDER ENGINE */}
       {!isLoadingTotal && (
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-12">
           
           {/* PHÂN ĐOẠN 1: BỘ SƯU TẬP TỪ VỰNG CÁ NHÂN */}
-          <div className="flex flex-col gap-4 animate-in slide-in-from-bottom-3 duration-300">
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <BookOpen size={18} className="text-[#00CEC9]" />
-                  <h2 className="text-base font-[900] text-[#2D3436] uppercase tracking-wide">Bộ sưu tập từ vựng cá nhân</h2>
+          <div className="flex flex-col gap-6 animate-in slide-in-from-bottom-3 duration-500">
+            {/* Header phân đoạn */}
+            <div className="flex items-center justify-between border-b-2 border-slate-200/60 pb-4 px-1">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-[#00CEC9]/10 flex items-center justify-center border border-[#00CEC9]/20 shadow-sm">
+                  <BookOpen size={20} className="text-[#00CEC9]" />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(true)}
-                  className="px-3 py-1 bg-[#00CEC9] hover:bg-[#00b2b0] text-white text-[11px] font-black rounded-lg active:translate-y-0.5 uppercase tracking-wide transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Plus size={12} strokeWidth={2.5} /> Bộ từ vựng mới
-                </button>
+                <div>
+                  <h2 className="text-base font-[900] text-[#2D3436] uppercase tracking-wider">Bộ sưu tập từ vựng</h2>
+                  <p className="text-[11px] text-[#B2BEC3] font-bold uppercase tracking-wide mt-0.5">Local Storage</p>
+                </div>
               </div>
-              <span className="text-[10px] bg-slate-100 text-slate-600 font-black px-2 py-0.5 rounded-full uppercase">Local Storage</span>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(true)}
+                className="px-4 py-2 bg-[#00CEC9] hover:bg-[#00b2b0] text-white text-xs font-black rounded-xl active:translate-y-0.5 uppercase tracking-wide transition-all shadow-[0_4px_0_0_#00b2b0] active:shadow-none border border-[#00b2b0] flex items-center gap-2 cursor-pointer"
+              >
+                <Plus size={14} strokeWidth={3} /> Thêm bộ mới
+              </button>
             </div>
 
             {collections.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-xl border border-[#E5E5E5] text-[#B2BEC3] text-xs font-bold shadow-sm">
-                Chưa có bộ sưu tập từ vựng cá nhân nào được tạo.
+              <div className="flex flex-col items-center justify-center text-center py-16 bg-white rounded-2xl border-2 border-dashed border-[#E5E5E5] px-6">
+                <div className="w-14 h-14 bg-[#00CEC9]/5 text-[#00CEC9] rounded-2xl flex items-center justify-center mb-4 border border-[#00CEC9]/10 shadow-inner">
+                  <FolderOpen size={24} />
+                </div>
+                <h4 className="text-sm font-black text-[#2D3436] uppercase tracking-wide">Thư mục từ vựng trống</h4>
+                <p className="text-xs text-[#B2BEC3] font-semibold mt-1 max-w-sm">
+                  Bạn chưa khởi tạo không gian lưu trữ từ vựng nào. Hãy nhấn nút phía trên để bắt đầu tích lũy.
+                </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 auto-rows-stretch">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-stretch">
                 {collections.map((fileName, index) => (
-                  <div key={index} className="w-full flex flex-col">
+                  <div key={index} className="w-full flex flex-col group">
                     <button
                       type="button"
                       onClick={() => handleSelectCollection(fileName)}
-                      className="bg-white border border-[#E5E5E5] rounded-2xl p-6 text-left shadow-sm cursor-pointer flex flex-col justify-between h-full w-full select-none"
+                      className="bg-white border-2 border-[#E5E5E5] hover:border-[#00CEC9] rounded-2xl px-6 py-5 text-left shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between h-full w-full select-none"
                     >
-                      <div className="w-full flex flex-col h-full justify-between">
-                        <div>
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="w-12 h-12 rounded-xl bg-[#00CEC9]/10 flex items-center justify-center border border-[#00CEC9]/20">
-                              <FolderOpen size={22} className="text-[#00CEC9]" />
-                            </div>
-                            <Bookmark size={18} className="text-[#00CEC9]" />
+                      <div className="w-full flex flex-col h-full justify-between gap-5">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 shrink-0 rounded-xl bg-[#00CEC9]/10 flex items-center justify-center border border-[#00CEC9]/20 group-hover:bg-[#00CEC9] group-hover:text-white transition-colors duration-200">
+                            <FolderOpen size={24} className="text-[#00CEC9] group-hover:text-white transition-colors duration-200" />
                           </div>
-                          <h3 className="text-base font-[900] text-[#2D3436] tracking-tight truncate">
-                            {fileName.replace('.json', '')}
-                          </h3>
-                          <p className="text-[11px] text-[#B2BEC3] mt-1 font-semibold truncate">
-                             Bộ sưu tập từ vựng
-                          </p>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-base font-black text-[#2D3436] tracking-tight truncate group-hover:text-[#00CEC9] transition-colors">
+                              {fileName.replace('.json', '')}
+                            </h3>
+                            <p className="text-[11px] text-[#B2BEC3] font-bold uppercase tracking-wider mt-0.5">
+                              Tài liệu cấu trúc
+                            </p>
+                          </div>
                         </div>
-                        <div className="w-full mt-5 pt-3 border-t border-[#F2F2F2] flex items-center justify-end">
-                          <span className="text-[11px] font-black text-[#00CEC9] uppercase tracking-wider">
-                            Xem chi tiết &rarr;
+                        
+                        <div className="w-full pt-3 border-t border-slate-100 flex items-center justify-between">
+                          <span className="text-[10px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md uppercase">Từ vựng</span>
+                          <span className="text-xs font-black text-[#00CEC9] uppercase tracking-wider flex items-center gap-1">
+                            Khám phá <span className="transform group-hover:translate-x-1 transition-transform">&rarr;</span>
                           </span>
                         </div>
                       </div>
@@ -281,34 +287,36 @@ export default function LibraryPage() {
             )}
           </div>
 
-          {/* PHÂN ĐOẠN 2: BỘ ĐỀ TRẮC NGHIỆM CÁ NHÂN (CHỐNG VỠ CARD) */}
-          <div className="flex flex-col gap-4 animate-in slide-in-from-bottom-3 duration-500 delay-75">
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <UserPen size={18} className="text-[#FF3399]" />
-                  <h2 className="text-base font-[900] text-[#2D3436] uppercase tracking-wide">Bộ đề trắc nghiệm cá nhân</h2>
+          <div className="flex flex-col gap-6 animate-in slide-in-from-bottom-3 duration-500 delay-75">
+            <div className="flex items-center justify-between border-b-2 border-slate-200/60 pb-4 px-1">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-[#FF3399]/10 flex items-center justify-center border border-[#FF3399]/20 shadow-sm">
+                  <UserPen size={20} className="text-[#FF3399]" />
                 </div>
-                <Link href="/dashboard/discover">
-                  <button type="button" className="px-3 py-1 bg-[#FF3399] hover:filter hover:brightness-105 text-white text-[11px] font-black rounded-lg border-b-2 border-[#D12A7E] active:translate-y-0.5 active:border-b-0 uppercase tracking-wide transition-all shadow-sm flex items-center gap-1.5 cursor-pointer">
-                    <Sparkles size={12} className="text-white" /> Tạo mới
-                  </button>
-                </Link>
+                <div>
+                  <h2 className="text-base font-[900] text-[#2D3436] uppercase tracking-wider">Kho đề trắc nghiệm</h2>
+                  <p className="text-[11px] text-[#B2BEC3] font-bold uppercase tracking-wide mt-0.5">Local Storage</p>
+                </div>
               </div>
-              <span className="text-[10px] bg-[#FF3399]/10 text-[#FF3399] font-black px-2 py-0.5 rounded-full uppercase">OPFS Engine</span>
+              <Link href="/dashboard/discover">
+                <button type="button" className="px-4 py-2 bg-[#FF3399] text-white text-xs font-black rounded-xl active:translate-y-0.5 uppercase tracking-wide transition-all shadow-[0_4px_0_0_#D12A7E] active:shadow-none border border-[#D12A7E] flex items-center gap-2 cursor-pointer">
+                  <Sparkles size={14} className="text-white animate-pulse" /> Tạo đề mới
+                </button>
+              </Link>
             </div>
 
             {quizzes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center text-center py-14 bg-white rounded-2xl border border-[#E5E5E5] opacity-90 max-w-md mx-auto w-full shadow-sm">
-                <div className="w-10 h-10 bg-[#F7F9FB] rounded-xl flex items-center justify-center text-[#B2BEC3] mb-3 border border-[#E5E5E5]">
-                  <HelpCircle size={18} />
+              <div className="flex flex-col items-center justify-center text-center py-16 bg-white rounded-2xl border-2 border-dashed border-[#E5E5E5] px-6">
+                <div className="w-14 h-14 bg-[#FF3399]/5 text-[#FF3399] rounded-2xl flex items-center justify-center mb-4 border border-[#FF3399]/10 shadow-inner">
+                  <HelpCircle size={24} />
                 </div>
-                <h4 className="text-xs font-black text-[#2D3436] uppercase tracking-wider">Kho đề trống</h4>
-                <p className="text-[11px] text-[#B2BEC3] font-medium mt-1">Hãy tạo đề thi mới từ tài liệu PDF/Markdown của bạn.</p>
+                <h4 className="text-sm font-black text-[#2D3436] uppercase tracking-wide">Kho lưu trữ trống</h4>
+                <p className="text-xs text-[#B2BEC3] font-semibold mt-1 max-w-sm">
+                  Chưa tìm thấy bộ đề trắc nghiệm nào. Bạn có thể xây dựng bộ câu hỏi tự động từ các file tài liệu PDF hoặc Markdown.
+                </p>
               </div>
             ) : (
-              /* auto-rows-stretch kết hợp w-full flex flex-col giúp chống vỡ layout hoàn toàn */
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 auto-rows-stretch">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-stretch">
                 {quizzes.map((quiz) => (
                   <div key={quiz.id} className="w-full flex flex-col">
                     <QuizCard
@@ -325,38 +333,42 @@ export default function LibraryPage() {
         </div>
       )}
 
-      {/* MODAL TẠO BỘ TỪ VỰNG MỚI */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div className="bg-white border border-[#E5E5E5] rounded-2xl p-6 w-full max-w-md shadow-2xl relative animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-white border-2 border-[#E5E5E5] rounded-2xl p-7 w-full max-w-md shadow-2xl relative animate-in zoom-in-95 duration-200">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+              className="absolute top-5 right-5 p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-slate-200"
             >
-              <X size={16} strokeWidth={2.5} />
+              <X size={16} strokeWidth={3} />
             </button>
 
-            <div className="mb-5">
-              <h2 className="text-base font-bold text-[#2D3436] tracking-tight">
-                Tạo bộ sưu tập từ vựng mới
-              </h2>
-              <p className="text-xs text-[#B2BEC3] mt-0.5 font-medium">
-                Phân tách từ vựng theo các mục tiêu ôn luyện riêng của bạn.
-              </p>
+            <div className="mb-6 flex gap-3.5 items-start">
+              <div className="w-10 h-10 rounded-xl bg-[#00CEC9]/10 flex items-center justify-center border border-[#00CEC9]/20 shrink-0">
+                <Plus size={18} className="text-[#00CEC9]" strokeWidth={3} />
+              </div>
+              <div>
+                <h2 className="text-base font-black text-[#2D3436] tracking-tight uppercase">
+                  Tạo không gian mới
+                </h2>
+                <p className="text-xs text-[#B2BEC3] mt-0.5 font-medium leading-relaxed">
+                  Phân tách các trường từ vựng theo mục tiêu ôn luyện riêng biệt của bạn.
+                </p>
+              </div>
             </div>
 
             <form onSubmit={handleCreateCollection} className="space-y-5">
               <div>
-                <label className="block text-[11px] font-bold text-[#B2BEC3] uppercase tracking-wider mb-2">
-                  Tên bộ từ vựng
+                <label className="block text-[11px] font-black text-[#B2BEC3] uppercase tracking-wider mb-2">
+                  Tên bộ sưu tập từ vựng
                 </label>
                 <input
                   type="text"
                   value={newCollectionName}
                   onChange={(e) => setNewCollectionName(e.target.value)}
-                  placeholder="Ví dụ: Oxford 3000, Core Vocab..."
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#00CEC9] focus:ring-2 focus:ring-[#00CEC9]/10 text-[#2D3436] font-semibold placeholder:text-slate-400 bg-[#F7F9FB] transition-all"
+                  placeholder="Ví dụ: IELTS Target 7.5, N3 Kanji..."
+                  className="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#00CEC9] text-[#2D3436] font-bold placeholder:text-slate-400 bg-[#F7F9FB] focus:bg-white transition-all shadow-inner"
                   autoFocus
                 />
               </div>
@@ -365,22 +377,22 @@ export default function LibraryPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl border-2 border-slate-200 text-xs font-black text-slate-600 hover:bg-slate-50 active:translate-y-0.5 transition-all cursor-pointer uppercase tracking-wider"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   type="submit"
                   disabled={!newCollectionName.trim()}
-                  className="px-5 py-2.5 rounded-xl bg-[#00CEC9] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#00b2b0] transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-[#00CEC9] text-white text-xs font-black uppercase tracking-wider hover:bg-[#00b2b0] active:translate-y-0.5 transition-all shadow-[0_4px_0_0_#00b2b0] active:shadow-none border border-[#00b2b0] disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
                 >
-                  Xác nhận
+                  Xác nhận tạo
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-    </div>
+</div>
   );
 }

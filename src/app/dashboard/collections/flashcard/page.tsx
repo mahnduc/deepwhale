@@ -30,7 +30,6 @@ export default function FlashCard({ initialCollection = "" }: FlashCardProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Quét danh sách các bộ sưu tập từ OPFS
   useEffect(() => {
     async function loadCollections() {
       try {
@@ -65,7 +64,6 @@ export default function FlashCard({ initialCollection = "" }: FlashCardProps) {
     loadCollections();
   }, [initialCollection]);
 
-  // 2. Tải dữ liệu thẻ khi một bộ sưu tập được chọn
   useEffect(() => {
     if (!selectedCollection) {
       setCards([]);
@@ -115,7 +113,6 @@ export default function FlashCard({ initialCollection = "" }: FlashCardProps) {
     }, 155);
   };
 
-  // Hàm xử lý khi bấm nút Quay lại danh sách
   const handleBackToCollections = () => {
     setSelectedCollection("");
     setCards([]);
@@ -125,7 +122,6 @@ export default function FlashCard({ initialCollection = "" }: FlashCardProps) {
   return (
     <div className="min-h-full w-full bg-slate-50/50 flex flex-col" style={{ fontFamily: "'Nunito', sans-serif" }}>
       
-      {/* KHU VỰC THÔNG BÁO LỖI */}
       {error && (
         <div className="mx-auto w-full max-w-4xl mt-4 px-4">
           <div className="w-full text-red-500 bg-red-50 px-4 py-3 rounded-2xl border border-red-100 text-center text-sm font-semibold shadow-xs">
@@ -134,15 +130,13 @@ export default function FlashCard({ initialCollection = "" }: FlashCardProps) {
         </div>
       )}
 
-      {/* CHẾ ĐỘ 1: ĐANG TẢI DỮ LIỆU */}
       {isLoading ? (
         <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-3">
           <Loader2 className="w-8 h-8 text-[#00CEC9] animate-spin" />
           <span className="text-sm font-bold tracking-wide text-slate-600">Đang đồng bộ dữ liệu hệ thống...</span>
         </div>
       ) : !selectedCollection ? (
-        
-        /* CHẾ ĐỘ 2: DANH SÁCH BỘ SƯU TẬP (Hiển thị trực tiếp) */
+
         <div className="flex-1 max-w-6xl w-full mx-auto px-6 py-10 space-y-8">
           <div>
             <h1 className="text-2xl font-black text-slate-800 tracking-tight">Flashcard</h1>
@@ -154,11 +148,10 @@ export default function FlashCard({ initialCollection = "" }: FlashCardProps) {
               <MirrorRectangular className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-base font-bold text-slate-700">Chưa có bộ sưu tập nào</p>
               <p className="text-xs text-slate-400 max-w-xs mx-auto mt-1 leading-relaxed">
-                Vui lòng thêm các tệp dữ liệu định dạng cấu trúc <code className="bg-slate-100 px-1 py-0.5 rounded text-red-500">.json</code> vào thư mục lưu trữ.
+                Hãy tạo bộ sưu tập từ vựng mới
               </p>
             </div>
           ) : (
-            /* Lưới danh sách các Card */
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
               {collections.map((name) => (
                 <div
