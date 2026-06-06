@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
 import React, { useRef, useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
-import { TrendingUpDown, Users } from 'lucide-react'; 
+import { TrendingUpDown } from 'lucide-react'; 
 import ChatWindow from './ChatWindow'; 
 
 export default function FloatingChat() {
@@ -17,6 +17,15 @@ export default function FloatingChat() {
         x: window.innerWidth - 80,
         y: window.innerHeight - 80,
       });
+
+      const handleOpenEvent = () => {
+        setIsOpen(true);
+      };
+
+      window.addEventListener("open-learning-assistant", handleOpenEvent);
+      return () => {
+        window.removeEventListener("open-learning-assistant", handleOpenEvent);
+      };
     }
   }, []);
 

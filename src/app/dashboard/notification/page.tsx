@@ -298,7 +298,7 @@ export default function NotesDisplayPage() {
                       
                       {isSpecial ? (
                         <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-white/20 text-white backdrop-blur-sm flex items-center gap-1 border border-white/20">
-                          <Sparkles size={10} fill="currentColor" /> ĐẶC BIỆT KHẨN
+                          <Sparkles size={10} fill="currentColor" /> ĐẶC BIỆT
                         </span>
                       ) : (
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border flex items-center gap-1 ${config.bg}`}>

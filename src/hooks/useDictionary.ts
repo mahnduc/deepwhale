@@ -96,7 +96,7 @@ export function useDictionary() {
       const cleanWord = activeWord.trim().toLowerCase();
 
       try {
-        const resolvedApiKey = await keyApi.getRandomKey('groq');
+        const resolvedApiKey = await keyApi.getKey(1);
         if (!resolvedApiKey) throw new Error('Không thể lấy API key Groq hợp lệ.');
 
         const aiInsightData = await fetchDictionaryInsightFromGroq(cleanWord, resolvedApiKey);

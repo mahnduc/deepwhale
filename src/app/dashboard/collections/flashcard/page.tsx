@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import FlashCardViewer from "./_components/FlashCardViewer";
-import { Folder, ArrowLeft, Loader2, Info, MirrorRectangular } from "lucide-react"; // Đảm bảo bạn đã cài lucide-react hoặc thay bằng SVG tương đương
+import { ArrowLeft, Loader2, Info, MirrorRectangular } from "lucide-react";
 import Link from "next/link";
 
 interface PartOfSpeech {

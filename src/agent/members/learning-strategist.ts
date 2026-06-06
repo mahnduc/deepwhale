@@ -1,7 +1,15 @@
-import { BACKUP_MODEL } from "@/utils/constant";
-import { ToolDefinition, ToolExecutor, AgentSession, ToolResult, AgentConfig } from "../core/types";
-
-// === 1. ĐỊNH NGHĨA DOMAIN DATA SCHEMAS ===
+// src/core/agent/learning-strategist.ts
+import { BACKUP_MODEL, GROQ_DEFAULT_MODEL } from "@/utils/constant";
+import { 
+  IAgent, 
+  AgentConfig, 
+  ChatMessage, 
+  DynamicRuntimeConfig, 
+  ToolDefinition, 
+  ToolExecutor, 
+  AgentSession, 
+  ToolResult 
+} from "../core/types";
 
 export interface ChartDataPoint {
   attemptId: string | number;
@@ -15,51 +23,73 @@ export interface ChartDataPoint {
   timestamp: string | number;
 }
 
-export interface AgentStrategyRequest {
+export interface QuizPayloadData {
   quizTitle: string;
   chartData: ChartDataPoint[];
-  studentGoal?: string;
-  targetDate?: string;
-  weakTopics?: string[];
-  additionalNotes?: string;
 }
 
 export interface TimetableTask {
   day: string;
-  focusTopic: string;
   durationMinutes: number;
   actionItems: string[];
-  weakTopicStrategies: string[]; 
-  expectedImprovement: string;   
 }
 
-export interface TimetablePayload {
-  timetableName: string;
-  quizTitle: string;
-  createdAt: string;
-  overallStrategySummary: string; 
-  targetedWeakTopics: string[];   
-  schedule: TimetableTask[];
+interface TrendAnalysisResult {
+  summary: string;
+  recommendedDays: number;
 }
 
-export interface SaveTimetableArgs {
-  timetableData: TimetablePayload;
+function analyzeTrendAndDuration(data: ChartDataPoint[]): TrendAnalysisResult {
+  if (!data || data.length < 2) {
+    return {
+      summary: "Mình chưa có đủ dữ liệu để đánh giá xu hướng học tập của cậu đâu, chịu khó luyện tập thêm vài lần nữa nhé!",
+      recommendedDays: 5
+    };
+  }
+
+  const sortedData = [...data].sort((a, b) => Number(a.timestamp || 0) - Number(b.timestamp || 0));
+  const firstAcc = sortedData[0].accuracy || 0;
+  const lastAcc = sortedData[sortedData.length - 1].accuracy || 0;
+  const diff = lastAcc - firstAcc;
+  const currentAcc = lastAcc;
+
+  let recommendedDays = 7;
+  if (currentAcc >= 90) {
+    recommendedDays = 2;
+  } else if (currentAcc >= 80) {
+    recommendedDays = 3;
+  } else if (currentAcc >= 65) {
+    recommendedDays = 5;
+  } else {
+    recommendedDays = 7;
+  }
+
+  if (diff > 5 && recommendedDays > 2) {
+    recommendedDays -= 1;
+  }
+
+  let summary = "";
+  if (Math.abs(diff) <= 3) {
+    summary = `ổn định quanh mức ${currentAcc}% (Đề xuất lộ trình gọn gàng trong ${recommendedDays} ngày)`;
+  } else if (diff > 3) {
+    summary = `đang lên rất tốt, tiến bộ rõ rệt từ ${firstAcc}% lên ${lastAcc}% (Đề xuất tối ưu tiến độ rút ngắn còn ${recommendedDays} ngày)`;
+  } else {
+    summary = `đang có dấu hiệu chững lại hoặc sụt giảm từ ${firstAcc}% xuống ${lastAcc}% (Đề xuất kéo dài lịch ôn tập lên ${recommendedDays} ngày để rà soát kỹ lỗi sai)`;
+  }
+
+  return { summary, recommendedDays };
 }
 
-// === 2. ĐỊNH NGHĨA CÔNG CỤ (SỬA ĐỔI DESCRIPTION TRÁNH BỊA NỘI DUNG) ===
-
+// --- DEFINITIONS ---
 const analyzeQuizHistoryTool: ToolDefinition = {
   type: "function",
   function: {
     name: "analyze_quiz_history",
-    description: "Nén lịch sử điểm số/thời gian làm bài Quiz thành định dạng CSV để Agent phân tích xu hướng.",
+    description: "Trích xuất trạng thái xu hướng học tập đã qua tiền xử lý, không mang theo dữ liệu thô rườm rà.",
     parameters: {
       type: "object",
       properties: {
-        confirmAnalysis: {
-          type: "boolean",
-          description: "Xác nhận kích hoạt bộ phân tích xu hướng điểm số và tốc độ."
-        }
+        confirm: { type: "boolean" }
       },
       required: []
     },
@@ -70,203 +100,211 @@ const saveTimetableToOpfsTool: ToolDefinition = {
   type: "function",
   function: {
     name: "save_timetable_to_opfs",
-    description: "Lưu cấu hình JSON lịch ôn tập vào thư mục OPFS '/timetable'.",
+    description: "Lưu cấu hình chi tiết lịch ôn tập tập trung vào phân bổ thời gian vào hệ thống tệp tin OPFS của trình duyệt.",
     parameters: {
       type: "object",
       properties: {
-        timetableData: {
-          type: "object",
-          description: "Đối tượng JSON chứa lịch trình sắp xếp thời gian ôn tập dựa trên phản hồi của người dùng.",
-          properties: {
-            timetableName: { 
-              type: "string", 
-              description: "Tên file viết liền không dấu (e.g., lich_on_tap_quiz)" 
+        timetableName: { type: "string", description: "Slug định dạng từ tiêu đề, ví dụ: 'lich_on_tap'" },
+        quizTitle: { type: "string", description: "Tiêu đề gốc của bài trắc nghiệm" },
+        createdAt: { type: "string", description: "Thời gian tạo chuỗi ISOString" },
+        overallStrategySummary: { type: "string", description: "Tóm tắt định hướng cốt lõi cải thiện độ chính xác và quản lý thời gian" },
+        schedule: {
+          type: "array",
+          description: "Mảng danh sách các ngày học thực tế phân bổ theo thời gian. Tự động dàn trải dựa trên ngày bắt đầu hiện tại.",
+          items: {
+            type: "object",
+            properties: {
+              day: { type: "string", description: "Định dạng ngày cụ thể tính từ hôm nay, ví dụ: 'Ngày 04/06 (Hôm nay)', 'Ngày 05/06'" },
+              durationMinutes: { type: "number", description: "Thời lượng tính bằng phút" },
+              actionItems: { type: "array", items: { type: "string" }, description: "Các bước hành động chi tiết sửa lỗi sai" }
             },
-            quizTitle: { 
-              type: "string",
-              description: "Tên bài trắc nghiệm mục tiêu."
-            },
-            createdAt: { 
-              type: "string",
-              description: "Định dạng thời gian ISO khi tạo file."
-            },
-            overallStrategySummary: {
-              type: "string",
-              description: "Tóm tắt phương pháp tối ưu hóa nhịp độ làm bài và phân bổ thời gian ôn tập."
-            },
-            targetedWeakTopics: {
-              type: "array",
-              items: { type: "string" },
-              description: "Các khía cạnh về kỹ năng làm bài (ví dụ: 'Kiểm soát tốc độ', 'Luyện đề phản xạ') cần cải thiện."
-            },
-            schedule: {
-              type: "array",
-              description: "Lịch trình phân bổ các phiên học theo ngày dựa trên quỹ thời gian người dùng đã chọn.",
-              items: {
-                type: "object",
-                properties: {
-                  day: { type: "string", description: "Ví dụ: 'Ngày 1', 'Ngày 2'" },
-                  focusTopic: { type: "string", description: "Nội dung tập trung của buổi học (Ví dụ: 'Giải đề bấm giờ', 'Rà soát câu sai cũ')" },
-                  durationMinutes: { type: "number", description: "Thời lượng học (phút)" },
-                  actionItems: { 
-                    type: "array", 
-                    items: { type: "string" },
-                    description: "Các bước hành động cụ thể trong buổi học." 
-                  },
-                  weakTopicStrategies: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "Mẹo cải thiện tâm lý hoặc kiểm soát thời gian dựa trên các lượt làm bài cũ."
-                  },
-                  expectedImprovement: {
-                    type: "string",
-                    description: "Mục tiêu đạt được sau phiên học (Ví dụ: 'Ổn định thời gian làm bài dưới 15 phút')"
-                  }
-                },
-                required: ["day", "focusTopic", "durationMinutes", "actionItems", "weakTopicStrategies", "expectedImprovement"]
-              }
-            }
-          },
-          required: ["timetableName", "quizTitle", "createdAt", "overallStrategySummary", "targetedWeakTopics", "schedule"]
+            required: ["day", "durationMinutes", "actionItems"]
+          }
         }
       },
-      required: ["timetableData"]
+      required: ["timetableName", "quizTitle", "createdAt", "overallStrategySummary", "schedule"]
     },
   },
 };
 
-// === 3. HELPER LỌC DỮ LIỆU NỘI BỘ ===
-
-function convertToCSV(data: ChartDataPoint[]): string {
-  const header = "Timestamp,Score/Total,Accuracy(%),Duration(s)";
-  const rows = data.map((attempt) => {
-    const date = new Date(attempt.timestamp);
-    const formattedDate = date.toISOString().replace("T", " ").substring(0, 16);
-    return `${formattedDate},${attempt.score}/${attempt.totalQuestions},${attempt.accuracy},${attempt.duration}`;
-  });
-  return [header, ...rows].join("\n");
-}
-
-// === 4. BỘ THỰC THI CÔNG CỤ (TOOL EXECUTORS) ===
-
-export const analyzeQuizHistoryExecutor: ToolExecutor = {
+// --- EXECUTORS ---
+const analyzeQuizHistoryExecutor: ToolExecutor = {
   name: "analyze_quiz_history",
   async execute(_args: any, session: AgentSession): Promise<ToolResult> {
     try {
-      const quizRequest = session.collectedData?.quizRequest as AgentStrategyRequest | undefined;
-
-      if (!quizRequest) {
-        return { success: false, error: "Không tìm thấy dữ liệu yêu cầu của Quiz trong session." };
+      const quizRequest = session.collectedData?.quizRequest as QuizPayloadData | undefined;
+      
+      if (!quizRequest || !quizRequest.chartData || quizRequest.chartData.length === 0) {
+        return { 
+          success: true, 
+          data: { 
+            hasEnoughData: false,
+            trendSummary: "chưa đủ dữ liệu luyện tập", 
+            recommendedDays: 5 
+          } 
+        };
       }
 
-      const { quizTitle, chartData, studentGoal, targetDate, weakTopics, additionalNotes } = quizRequest;
-      if (!chartData || chartData.length === 0) {
-        return { success: false, error: "Dữ liệu biểu đồ trống." };
-      }
-
-      const csvData = convertToCSV(chartData);
+      const analysis = analyzeTrendAndDuration(quizRequest.chartData);
+      const startDateStr = new Date().toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
 
       return {
         success: true,
         data: {
-          quizTitle,
-          totalAttempts: chartData.length,
-          csvData,
-          extendedContext: {
-            studentGoal: studentGoal ?? "Chưa thiết lập",
-            targetDate: targetDate ?? "Chưa xác định",
-            weakTopics: weakTopics && weakTopics.length > 0 ? weakTopics.join(", ") : "Không có dữ liệu nội dung",
-            additionalNotes: additionalNotes ?? "Không có",
-          },
+          hasEnoughData: quizRequest.chartData.length >= 2,
+          quizTitle: quizRequest.quizTitle,
+          trendSummary: analysis.summary,
+          recommendedDays: analysis.recommendedDays,
+          startDate: startDateStr,
         },
       };
     } catch (error: any) {
-      return {
-        success: false,
-        error: error?.message ?? "Xử lý nén dữ liệu thất bại",
-      };
+      return { success: false, error: "Failed to read data structure" };
     }
   },
 };
 
-export const saveTimetableToOpfsExecutor: ToolExecutor = {
+const saveTimetableToOpfsExecutor: ToolExecutor = {
   name: "save_timetable_to_opfs",
   async execute(args: any, _session: AgentSession): Promise<ToolResult> {
     try {
-      const typedArgs = args as SaveTimetableArgs;
-      const timetableData = typedArgs?.timetableData;
-
-      if (!timetableData || !timetableData.timetableName) {
-        return { success: false, error: "Thiếu dữ liệu timetableData hoặc tên lịch trình." };
+      if (!args || !args.timetableName || !args.schedule) {
+        return { success: false, error: "Arguments structure validation failed" };
       }
 
-      let fileName = timetableData.timetableName.toLowerCase().replace(/[^a-z0-9_.-]/g, "_");
+      let fileName = args.timetableName.toLowerCase().replace(/[^a-z0-9_.-]/g, "_");
       if (!fileName.endsWith(".json")) fileName += ".json";
 
       const root = await navigator.storage.getDirectory();
       const timetableDir = await root.getDirectoryHandle("timetable", { create: true });
       const fileHandle = await timetableDir.getFileHandle(fileName, { create: true });
 
-      const writable = await fileHandle.createWritable();
-      await writable.write(JSON.stringify(timetableData, null, 2));
+      const writable = await fileHandle.createWritable({ keepExistingData: false });
+      
+      const filePayload = {
+        timetableData: {
+          timetableName: args.timetableName,
+          quizTitle: args.quizTitle,
+          createdAt: args.createdAt,
+          overallStrategySummary: args.overallStrategySummary,
+          schedule: args.schedule
+        }
+      };
+
+      await writable.write(JSON.stringify(filePayload));
       await writable.close();
 
       return {
         success: true,
         data: {
-          message: `Lưu thời gian biểu thành công vào OPFS: /timetable/${fileName}`,
-          savedFileName: fileName,
+          savedFileName: fileName.replace(".json", ""),
+          path: "/dashboard/timetable"
         },
       };
     } catch (error: any) {
-      console.error("Lỗi ghi file OPFS:", error);
-      return {
-        success: false,
-        error: error?.message || "Không thể ghi dữ liệu thời gian biểu vào hệ thống file.",
-      };
+      console.error("OPFS Overwrite Error:", error);
+      return { success: false, error: "OPFS Write crash or override denied" };
     }
   },
 };
 
-// === 5. SYSTEM PROMPT (TẬP TRUNG HOÀN TOÀN VÀO SẮP XẾP LỊCH & PHỎNG VẤN THỜI GIAN) ===
+const QUIZ_STRATEGY_COACH_PROMPT = `Bạn là một người bạn thân, một "AI Study Buddy" cực kỳ tâm lý, giúp người bạn của mình lên lịch trình ôn tập ngắn ngày. Mục tiêu duy nhất là TẬP TRUNG PHÂN BỔ THỜI GIAN và HÀNH ĐỘNG CỤ THỂ để cải thiện độ chính xác, loại bỏ hoàn toàn các lỗi sai và tối ưu tốc độ làm bài. TUYỆT ĐỐI KHÔNG chia theo chủ đề học (focusTopic), không tự bịa ra các phần kiến thức yếu khi chưa có dữ liệu. Chỉ tập trung vào thời lượng và cách xử lý lỗi bài làm nói chung.
 
-export const QUIZ_STRATEGY_COACH_PROMPT = `You are a close, supportive AI Study Buddy. Your role is to help the student organize a study timetable based purely on their test performance history (scores, accuracy, and test duration). 
+QUY TẮC BẮT BUỘC KHI GỌI CÔNG CỤ (NGHIÊM NGẶT ĐỐI VỚI GROQ):
+- KHÔNG ĐƯỢC TỰ SINH hoặc chèn các chuỗi văn bản dạng giả thẻ XML như "<function=...>" hay "</function>" vào câu trả lời.
+- KHÔNG ĐƯỢC in các khối mã JSON thô trực tiếp ra màn hình chat với người dùng.
+- Khi người dùng bắt đầu cuộc hội thoại, hãy lập tức kích hoạt cấu trúc gọi hàm hệ thống (Function Calling) chuẩn của API.
+- Chuyển đổi "quizTitle" thành định dạng slug không dấu, viết liền cho "timetableName" (Ví dụ: "lich_on_tap_toan_10").
 
-Because the input data DOES NOT contain deep academic content (no specific questions or concept diagnostics), you MUST NOT invent or guess specific academic topics (like Math, Physics formulas, or coding concepts) unless the user explicitly tells you. Instead, focus entirely on "Performance Metrics & Time Management" (e.g., managing stamina, solving rush issues, pacing control, reducing careless errors, re-trying missed questions).
+NGÔN NGỮ & PHONG CÁCH:
+- Giao tiếp như bạn bè đồng trang lứa.
+- Thể hiện sự thấu hiểu, động viên chân thành. Tránh dùng từ ngữ quá học thuật hay rập khuôn máy móc từ dữ liệu thô của tool.
 
-CRITICAL WORKFLOW PROTOCOL:
+QUY TRÌNH TƯƠNG TÁC CHÍNH XÁC:
 
-1. FIRST INTERACTION (Trend Diagnosis & Time Sizing Interview):
-   - Immediately call "analyze_quiz_history" to load the data metrics.
-   - Look at the performance trends in the CSV:
-     * Is the student rushing? (High speed/low duration but declining accuracy).
-     * Is the student overthinking/stuck? (Very high duration but stagnant scores).
-     * Are their scores improving over attempts?
-   - Give a brief, friendly, peer-to-peer summary of their metric trends in Vietnamese (using "mình" - "cậu", "bạn"). Focus on pacing and consistency, NOT subject content.
-   - STOP IMMEDIATELY and ask the student how they want to arrange their schedule. Give them specific options to choose from, for example:
-     * How many days do they want the plan to last? (e.g., a intensive 3-day sprint or a relaxed 7-day routine?)
-     * How much time can they spend per day? (e.g., 15 mins, 30 mins, or 1 hour?)
-   - DO NOT call "save_timetable_to_opfs" in this turn. You must interview them first.
+Bước 1 (Lượt chat đầu tiên - Luôn chạy ngầm analyze_quiz_history trước):
+- Sau khi nhận được kết quả thực thi từ tool "analyze_quiz_history":
+  * Nếu "hasEnoughData" là false: Nói một cách nhẹ nhàng: "Mình thấy cậu mới làm được ít bài quá nên chưa đủ dữ liệu để đánh giá chính xác xu hướng học tập đâu, chịu khó cày thêm vài lần nữa nha! Cơ mà nếu muốn, mình vẫn có thể lên tạm một lịch phân bổ thời gian mẫu trong 5 ngày dựa trên bài vừa rồi đấy."
+  * Nếu "hasEnoughData" là true: Dựa hoàn toàn vào chuỗi "trendSummary" nhận được từ tool để phản hồi một cách tự nhiên. Thông báo lộ trình ôn tập cụ thể kéo dài trong "recommendedDays" ngày, bắt đầu từ hôm nay.
+- Hỏi ngắn gọn đúng 2 câu để lấy thông tin xếp lịch (TUYỆT ĐỐI KHÔNG tự bịa hay hỏi về các chủ đề yếu):
+  (1) Khung giờ nào trong những ngày tới cậu có thể tập trung học tốt nhất?
+  (2) Mỗi lượt ngồi vào bàn học cậu duy trì sự tập trung được khoảng bao nhiêu phút để mình chia ca học ôn cho chuẩn?
+- DỪNG LẠI và đợi câu trả lời từ người dùng.
 
-2. SECOND INTERACTION (Custom Timetable Blueprint & Storage):
-   - Once the user replies with their preferred schedule constraints, design the timetable accordingly.
-   - Map the focus topics to performance tasks like: "Luyện đề bấm giờ ngược", "Xem lại các câu làm sai ở lượt cũ", "Tối ưu hóa tốc độ phản xạ", "Rèn luyện tâm lý phòng thi".
-   - Execute the "save_timetable_to_opfs" tool immediately to persist the JSON payload.
-   - Inform the user cheerfully that their tailor-made schedule is successfully generated and locked inside their browser's OPFS.
+Bước 2 (Xác nhận lịch trình):
+- Khi user trả lời xong 2 câu hỏi trên, hãy phản hồi khích lệ ngắn gọn.
+- Hỏi chính xác câu này và DỪNG LẠI, không thêm thắt gì khác: "Cậu xác nhận lịch trình này để mình khởi tạo chiến lược học tập nhé?"
+- Tuyệt đối không gọi tool hay sinh cấu trúc dữ liệu ở bước này.
 
-Tone and Language:
-- Natural, friendly Vietnamese ("nha", "nhé", "cậu - mình").
-- Action-oriented, data-aware, but absolutely zero academic hallucination.`;
+Bước 3 (Thực thi & Xuất kết quả):
+- Khi người dùng nói "ok", "xác nhận", "đồng ý", "tạo đi", "chốt", gọi ngay tool "save_timetable_to_opfs".
+- ĐIỀU KIỆN QUAN TRỌNG VỀ SỐ LƯỢNG: Số lượng phần tử (Object) nằm trong mảng "schedule" bắt buộc phải bằng ĐÚNG với giá trị số ngày "recommendedDays" nhận từ kết quả của "analyze_quiz_history". Nếu đề xuất 7 ngày, mảng phải sinh đủ 7 phần tử liên tiếp tương ứng.
 
-// === 6. CẤU HÌNH AGENT CONFIG ===
+Cấu trúc tham số điền vào tool:
+{
+  "timetableName": "chuoi_slug_viet_lien_khong_dau_dua_tren_quiz_title",
+  "quizTitle": "Tiêu đề bài trắc nghiệm nhận từ tool",
+  "createdAt": "Chuỗi ISOString hiện tại",
+  "overallStrategySummary": "Tóm tắt chiến lược phân bổ thời gian sửa lỗi sai để tăng % chính xác",
+  "schedule": [
+    {
+      "day": "Ngày DD/MM (Tính toán tịnh tiến liên tiếp, phần tử đầu tiên luôn bắt đầu từ giá trị [startDate] nhận từ tool)",
+      "durationMinutes": 45,
+      "actionItems": [
+        "Xem lại toàn bộ các câu làm sai trong bài test.",
+        "Phân tích nguyên nhân sai (do đọc ẩu hay chưa vững công thức) và ghi chú lại."
+      ]
+    }
+    // ... Phải tự động tạo tiếp các phần tử lặp tương tự cho đến khi đủ số lượng ngày [recommendedDays] ...
+  ]
+}
+- Lưu ý: Mỗi item trong mảng "schedule" CHỈ chứa đúng 3 trường bắt buộc: "day", "durationMinutes", "actionItems".
+- Sau khi tool chạy thành công, CHỈ hiển thị câu chốt hạ sau và link điều hướng, KHÔNG in dữ liệu lịch trình ra chat:
+  "Mình đã tạo xong lịch trình ôn tập với tên file: **[timetableName]** nha! Cậu có thể xem lịch phân bổ thời gian chi tiết tại [đây](/dashboard/timetable)"`;
 
-export const quizStrategyCoachAgent: AgentConfig = {
-  model: BACKUP_MODEL,
-  temperature: 0.1, 
-  maxSteps: 3,
-  maxTokens: 3000,
-  systemPrompt: QUIZ_STRATEGY_COACH_PROMPT,
-  tools: [analyzeQuizHistoryTool, saveTimetableToOpfsTool],
-  executors: [analyzeQuizHistoryExecutor, saveTimetableToOpfsExecutor],
-  history: [],
-};
+export class QuizStrategyCoachAgent implements IAgent {
+  public readonly config: AgentConfig = {
+    id: "quiz-strategy-coach",
+    systemPrompt: QUIZ_STRATEGY_COACH_PROMPT,
+    model: GROQ_DEFAULT_MODEL,
+    temperature: 0.1,
+    maxSteps: 2,
+    maxTokens: 300, // Tăng nhẹ hạn mức hội thoại thông thường để tránh nuốt chữ ở bước 1
+    tools: [analyzeQuizHistoryTool, saveTimetableToOpfsTool],
+    executors: [analyzeQuizHistoryExecutor, saveTimetableToOpfsExecutor],
+  };
+
+  public onBeforeRequest(history: ChatMessage[], latestMessage: string): DynamicRuntimeConfig {
+    const assistantMessages = history.filter(msg => msg.role === "assistant");
+    const lastAssistantContent = assistantMessages[assistantMessages.length - 1]?.content || "";
+    
+    const userText = latestMessage.toLowerCase();
+    const isSystemWaitingForConfirm = lastAssistantContent.includes("xác nhận lịch trình này");
+
+    // 1. Kiểm tra xem user có gõ từ khóa đồng ý trùng khớp với trạng thái hệ thống đang chờ hay không
+    const isConfirming = isSystemWaitingForConfirm && ["ok", "xác nhận", "đồng ý", "tạo đi", "chốt"].some(keyword => 
+      userText.includes(keyword)
+    );
+
+    // 2. Kiểm tra xem lượt request hiện tại có nằm trong luồng xử lý hoặc phản hồi kết quả của tool save_timetable hay không
+    const isToolExecutionLoop = history.some(msg => 
+      (msg.role === "tool" && msg.name === "save_timetable_to_opfs") ||
+      (msg.role === "assistant" && msg.tool_calls?.some(tc => tc.function.name === "save_timetable_to_opfs"))
+    );
+
+    // Nếu thuộc một trong hai trạng thái trên, nâng mạnh tài nguyên để tạo JSON full chuỗi ngày dài
+    if (isConfirming || isToolExecutionLoop) {
+      return {
+        temperature: 0.0,  // Ép nhiệt độ về 0 giúp Groq gọi tool chuẩn xác, không tự ý sáng tạo cấu trúc
+        maxTokens: 2500,   // Nới rộng thoải mái để không bị nuốt chuỗi JSON của lịch trình 7 ngày
+        maxSteps: 3
+      };
+    }
+
+    return {
+      temperature: 0.5,
+      maxTokens: 300,   
+      maxSteps: 2
+    };
+  }
+}

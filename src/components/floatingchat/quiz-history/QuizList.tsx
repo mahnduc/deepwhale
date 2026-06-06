@@ -15,15 +15,11 @@ interface QuizListProps {
 export const QuizList: React.FC<QuizListProps> = ({ quizzes, onSelectQuiz }) => {
   return (
     <div className="w-full h-full flex flex-col p-6 overflow-y-auto">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-slate-800">Lịch sử luyện tập Quiz</h2>
-        <p className="text-sm text-slate-500 mt-1">Chọn một bộ câu hỏi dưới đây để xem biểu đồ phân tích tăng trưởng.</p>
-      </div>
 
       {quizzes.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-8 bg-white">
           <Folder size={48} className="text-slate-300 stroke-[1.5]" />
-          <p className="text-slate-400 text-sm mt-3">Thư mục `history_quiz` hiện tại trống hoặc không có file dữ liệu .json hợp lệ.</p>
+          <p className="text-slate-400 text-sm mt-3">Lịch sử hiện tại trống.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

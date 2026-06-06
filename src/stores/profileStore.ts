@@ -1,9 +1,8 @@
 import { create } from 'zustand';
 
-// 1. Định nghĩa chi tiết cấu trúc log cho mỗi lần cộng XP
 export interface XpLog {
-  timestamp: string; // ISO String: "2026-05-31T09:30:00.000Z"
-  amount: number;    // Số XP được cộng: 50
+  timestamp: string; 
+  amount: number;
 }
 
 export interface UserProfile {

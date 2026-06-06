@@ -1,7 +1,10 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import { QuizLoader } from './quiz-history/QuizLoader';
 import { QuizDetailChart } from './quiz-history/QuizDetailChart';
 import { QuizList } from './quiz-history/QuizList';
+import { ClipboardList } from 'lucide-react';
 
 interface QuizFileItem {
   fileName: string;
@@ -36,7 +39,6 @@ export default function ContentWindow() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Quét thư mục history_quiz từ OPFS
   useEffect(() => {
     async function scanOPFSHistory() {
       try {
@@ -65,7 +67,6 @@ export default function ContentWindow() {
     scanOPFSHistory();
   }, []);
 
-  // Xử lý đọc tệp JSON & convert data
   const handleSelectQuiz = async (quiz: QuizFileItem) => {
     try {
       const file = await quiz.fileHandle.getFile();
@@ -96,26 +97,56 @@ export default function ContentWindow() {
     }
   };
 
-  // 1. Kiểm tra trạng thái Loading / Error trước
   if (loading || error) {
     return <QuizLoader loading={loading} error={error} />;
   }
 
-  // 2. Render UI tương ứng dựa vào State điều hướng
   return (
-    <div className="w-full h-full flex flex-col bg-slate-50">
-      {selectedQuiz ? (
-        <QuizDetailChart
-          quizTitle={selectedQuiz.quizFileName.replace('.json', '')}
-          chartData={chartData}
-          onBack={() => setSelectedQuiz(null)}
-        />
-      ) : (
-        <QuizList
-          quizzes={quizzes}
-          onSelectQuiz={handleSelectQuiz}
-        />
-      )}
+    /* ĐỔI THÀNH bg-white - Đồng bộ phẳng hoàn toàn */
+    <div className="w-full h-full flex flex-col bg-white font-sans antialiased text-slate-600 selection:bg-emerald-100 selection:text-emerald-900">
+      <div className="flex-1 w-full h-full p-6 overflow-auto custom-scrollbar animate-in fade-in duration-300">
+        
+        {selectedQuiz ? (
+          /* Xóa bỏ border và shadow của khối biểu đồ chi tiết */
+          <div className="w-full bg-white p-2 animate-in slide-in-from-right-4 duration-200">
+            <QuizDetailChart
+              quizTitle={selectedQuiz.quizFileName.replace('.json', '')}
+              chartData={chartData}
+              onBack={() => setSelectedQuiz(null)}
+            />
+          </div>
+        ) : quizzes.length > 0 ? (
+          /* Xóa bỏ border và shadow của khối danh sách bài luyện tập */
+          <div className="w-full bg-white p-2 animate-in slide-in-from-left-4 duration-200">
+            <div className="mb-5">
+              <h2 className="text-base font-bold text-slate-800 tracking-tight">
+                Danh sách bài luyện tập đã làm
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Chọn một bài để xem biểu đồ xu hướng chính xác và thời gian làm bài
+              </p>
+            </div>
+            
+            <QuizList
+              quizzes={quizzes}
+              onSelectQuiz={handleSelectQuiz}
+            />
+          </div>
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center py-16 text-center animate-in zoom-in-95 duration-200">
+            <div className="h-14 w-14 flex items-center justify-center rounded-2xl bg-slate-50 text-slate-400 mb-4 border border-slate-100">
+              <ClipboardList size={26} strokeWidth={1.5} />
+            </div>
+            <h3 className="text-sm font-bold text-slate-700 tracking-wide">
+              Chưa có lịch sử làm bài
+            </h3>
+            <p className="text-xs text-slate-400 max-w-xs mt-1 leading-relaxed">
+              Hãy hoàn thành ít nhất một bài trắc nghiệm để hệ thống bắt đầu theo dõi và phân tích xu hướng học tập nhé!
+            </p>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

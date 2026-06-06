@@ -1,9 +1,10 @@
+"use client";
+
 import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ChevronLeft, Calendar, BarChart2, Award, Clock, BrainCircuit } from 'lucide-react';
 import AgentPage from './AgentPage'; 
 
-// Import đúng interface từ file config của Agent
 export interface ChartDataPoint {
   attemptId: string | number;
   accuracy: number;
@@ -16,15 +17,6 @@ export interface ChartDataPoint {
   timestamp: string | number;
 }
 
-export interface AgentStrategyRequest {
-  quizTitle: string;
-  chartData: ChartDataPoint[];
-  studentGoal?: string;
-  targetDate?: string;
-  weakTopics?: string[];
-  additionalNotes?: string;
-}
-
 interface QuizDetailChartProps {
   quizTitle: string;
   chartData: ChartDataPoint[];
@@ -32,47 +24,27 @@ interface QuizDetailChartProps {
 }
 
 export const QuizDetailChart: React.FC<QuizDetailChartProps> = ({ quizTitle, chartData, onBack }) => {
-  // State quản lý trạng thái hiển thị view Agent
   const [isAgentOpen, setIsAgentOpen] = useState(false);
-  const [agentPayload, setAgentPayload] = useState<AgentStrategyRequest | null>(null);
   
   const handleCreateStrategy = () => {
     if (!chartData || chartData.length === 0) {
       alert("Không có dữ liệu lịch sử để phân tích.");
       return;
     }
-
-    // Đóng gói dữ liệu đầu vào (Required + Mở rộng)
-    const requestPayload: AgentStrategyRequest = {
-      quizTitle,
-      chartData,
-      // Bạn có thể lấy thêm các trường optional này từ 1 form input/modal nếu có
-      studentGoal: "Cải thiện độ chính xác và tối ưu tốc độ làm bài", 
-      targetDate: "Chưa xác định",
-      weakTopics: [],
-      additionalNotes: ""
-    };
-
-    setAgentPayload(requestPayload);
-    setIsAgentOpen(true); // Ẩn hoàn toàn biểu đồ để tối ưu không gian cho Agent
+    setIsAgentOpen(true);
   };
 
-  // === TRƯỜNG HỢP 1: ẨN BIỂU ĐỒ & HIỂN THỊ KHUNG CHAT AGENT FULL MÀN HÌNH ===
-  if (isAgentOpen && agentPayload) {
+  if (isAgentOpen) {
     return (
       <div className="w-full h-full animate-in fade-in duration-200">
         <AgentPage 
-          quizPayload={agentPayload} 
-          onClose={() => {
-            setIsAgentOpen(false);
-            setAgentPayload(null);
-          }}
+          quizPayload={{ quizTitle, chartData }} 
+          onClose={() => setIsAgentOpen(false)}
         />
       </div>
     );
   }
 
-  // === TRƯỜNG HỢP 2: GIAO DIỆN BIỂU ĐỒ GỐC VÀ LỊCH SỬ ===
   return (
     <div className="w-full h-full flex flex-col bg-white overflow-hidden animate-in fade-in duration-200">
       
@@ -91,7 +63,6 @@ export const QuizDetailChart: React.FC<QuizDetailChartProps> = ({ quizTitle, cha
           </div>
         </div>
 
-        {/* Nút lập chiến lược */}
         <button
           onClick={handleCreateStrategy}
           className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-medium rounded-lg shadow-sm transition-all duration-200"

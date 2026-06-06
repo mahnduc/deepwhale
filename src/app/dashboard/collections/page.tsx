@@ -136,11 +136,9 @@ export default function LibraryPage() {
       const text = await file.text();
       const parsed = JSON.parse(text) as QuizHistoryFile;
       
-      // Lấy mảng dữ liệu thử nghiệm đúng cấu trúc
       const attempts = parsed.attempts || [];
-      setHistoryData([...attempts].reverse()); // Đảo ngược để lượt làm mới nhất lên đầu
+      setHistoryData([...attempts].reverse());
     } catch (err) {
-      console.warn(`[OPFS History] Chưa có dữ liệu hoặc lỗi đọc lịch sử cho đề: ${quiz.fileName}`, err);
       setHistoryData([]);
     } finally {
       setLoadingHistory(false);

@@ -291,7 +291,7 @@ export function useCollection(): UseCollectionReturn {
     try {
       setIsAddingWord(true);
       const cleanWord = newWord.trim().toLowerCase();
-      const apiKey = await keyApi.getRandomKey('groq');
+      const apiKey = await keyApi.getKey(1);
       if (!apiKey) {
         throw new Error('Không tìm thấy API key.');
       }

@@ -1,6 +1,14 @@
 import { throwError } from "@/lib/error/error";
 
-export type KeysSchema = Record<string, string[]>;
+// Cấu trúc định dạng dữ liệu cho Groq
+export interface GroqKeyItem {
+  id: number;
+  key: string;
+}
+
+export interface KeysSchema {
+  groq: GroqKeyItem[];
+}
 
 const SECRET_FILENAME = "keys.json";
 const SECRET_DIRECTORY = "system-secrets";
@@ -16,17 +24,12 @@ const createKeyService = () => {
   };
 
   /**
-   * Helper: Validate API Key (Mở rộng dễ dàng qua Record)
+   * Helper: Validate API Key cho Groq
    */
-  const validateKey = async (provider: string, key: string): Promise<boolean> => {
+  const validateKey = async (key: string): Promise<boolean> => {
     if (!key.trim()) return false;
     
-    const endpoints: Record<string, string> = {
-      groq: "https://api.groq.com/openai/v1/models",
-    };
-
-    const url = endpoints[provider];
-    if (!url) return false;
+    const url = "https://api.groq.com/openai/v1/models";
 
     try {
       const res = await fetch(url, { headers: { Authorization: `Bearer ${key}` } });
@@ -42,9 +45,9 @@ const createKeyService = () => {
         const handle = await getFileHandle();
         const file = await handle.getFile();
         const content = await file.text();
-        return content ? JSON.parse(content) : {};
+        return content ? JSON.parse(content) : { groq: [] };
       } catch {
-        return {};
+        return { groq: [] };
       }
     },
 
@@ -59,56 +62,87 @@ const createKeyService = () => {
       }
     },
 
-    async add(provider: string, key: string): Promise<void> {
+    /**
+     * Chỉ lưu key của Groq kèm theo id tự động tăng dần từ 1
+     */
+    async add(key: string): Promise<void> {
       const trimmedKey = key.trim();
-      if (!(await validateKey(provider, trimmedKey))) {
-        throw new Error(`API key cho ${provider} không hợp lệ hoặc bị trống.`);
+      if (!(await validateKey(trimmedKey))) {
+        throw new Error(`API key cho Groq không hợp lệ hoặc bị trống.`);
       }
 
       const data = await this.load();
-      const currentKeys = data[provider] ?? [];
+      const currentKeys = data.groq ?? [];
 
-      if (currentKeys.includes(trimmedKey)) {
-        throw new Error("API key đã tồn tại.");
+      // Kiểm tra trùng lặp chuỗi key
+      const isExist = currentKeys.some(item => item.key === trimmedKey);
+      if (isExist) {
+        throw new Error("API key này đã tồn tại.");
       }
 
-      await this.save({ 
-        ...data, 
-        [provider]: [...currentKeys, trimmedKey] 
+      // Tính toán ID tiếp theo (Tăng dần từ 1 dựa trên ID lớn nhất hiện tại)
+      const nextId = currentKeys.length > 0 
+        ? Math.max(...currentKeys.map(k => k.id)) + 1 
+        : 1;
+
+      const newKeyItem: GroqKeyItem = {
+        id: nextId,
+        key: trimmedKey
+      };
+
+      await this.save({
+        ...data,
+        groq: [...currentKeys, newKeyItem]
       });
     },
 
-    async remove(provider: string, key: string): Promise<void> {
+    /**
+     * Xóa key dựa theo ID
+     */
+    async remove(id: number): Promise<void> {
       const data = await this.load();
-      if (!data[provider]) return;
+      if (!data.groq) return;
 
-      const filtered = data[provider].filter((k) => k !== key);
+      const filtered = data.groq.filter((item) => item.id !== id);
       
-      if (filtered.length > 0) {
-        data[provider] = filtered;
-      } else {
-        delete data[provider];
-      }
+      await this.save({
+        ...data,
+        groq: filtered
+      });
+    },
+
+    /**
+     * Lấy danh sách key sắp xếp theo ID tăng dần
+     */
+    async getKeys(): Promise<GroqKeyItem[]> {
+      const data = await this.load();
+      return (data.groq ?? []).sort((a, b) => a.id - b.id);
+    },
+
+    /**
+     * Lấy chính xác chuỗi API Key:
+     * - Nếu truyền id: Tìm và trả về chính xác key của ID đó.
+     * - Nếu không truyền id: Trả về key đầu tiên trong danh sách.
+     */
+    async getKey(id?: number): Promise<string> {
+      const keys = await this.getKeys();
       
-      await this.save(data);
-    },
-
-    async getProviders(): Promise<string[]> {
-      return Object.keys(await this.load());
-    },
-
-    async getKeys(provider: string): Promise<string[]> {
-      return (await this.load())[provider] ?? [];
-    },
-
-    async getRandomKey(provider: string): Promise<string> {
-      const keys = await this.getKeys(provider);
       if (!keys.length) {
-        throwError('NOT_FOUND_KEY', "Không tìm thấy Api Key. Xem hướng dẫn cấu hình api key tại [đây](/guide)")
+        throwError('NOT_FOUND_KEY', "Không tìm thấy Api Key. Xem hướng dẫn cấu hình api key tại [đây](/guide)");
       }
-      return keys[Math.floor(Math.random() * keys.length)];
-    }
 
+      // 1. Nếu truyền ID -> Lấy chính xác theo ID
+      if (id !== undefined) {
+        const target = keys.find(item => item.id === id);
+        if (!target) {
+          throw new Error(`Không tìm thấy API Key với ID bằng ${id}`);
+        }
+        return target.key;
+      }
+
+      // 2. Nếu không truyền ID -> Mặc định lấy key đầu tiên
+      return keys[0].key;
+    }
   };
 };
 

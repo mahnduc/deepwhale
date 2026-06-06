@@ -40,13 +40,12 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
     setActiveWord,
     results: dictResults,
     loading: dictLoading,
-    error: dictError,
-    isSaved,
-    setIsSaved,
     playAudio,
+    isSaved,
+    setIsSaved
   } = useDictionary();
 
-  // Hook 2: Tìm kiếm hỗn hợp RAG (Hybrid Search)
+  // Hook 2: Tìm kiếm từ khóa RAG (BM25 Engine mới)
   const {
     setSelectedKB,
     query,
@@ -151,7 +150,7 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
   if (fileLoading) {
     return (
       <div className="w-full py-20 flex flex-col items-center justify-center text-gray-400 gap-2">
-        <Loader2 className="w-5 h-5 border-indigo-500 animate-spin" />
+        <Loader2 className="w-5 h-5 text-indigo-500 animate-spin" />
         <p className="text-xs font-semibold">Đang nạp cấu trúc bộ tri thức local...</p>
       </div>
     );
@@ -169,7 +168,7 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
   return (
     <div className="w-full h-screen max-h-screen bg-[#F8FAFC] text-gray-800 antialiased selection:bg-indigo-100 flex flex-col lg:flex-row overflow-hidden">
       
-      {/* KHUNG TRÁI: Nội dung văn bản gốc (72%) */}
+      {/* KHUNG TRÁI: Đọc nội dung tài liệu */}
       <div className="w-full lg:w-[72%] bg-white border-r border-gray-100 overflow-y-auto h-full flex flex-col" onMouseUp={handleTextSelection}>
         <article className="w-full max-w-3xl mx-auto px-6 sm:px-8 py-6 flex-1 min-h-full">
           <header className="mb-6 pb-4 border-b border-gray-100 flex items-center gap-3">
@@ -198,7 +197,7 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
         </article>
       </div>
 
-      {/* KHUNG PHẢI: Sidebar Dashboard tối ưu không gian (28%) */}
+      {/* KHUNG PHẢI: Sidebar Dashboard (28%) */}
       <div className="w-full lg:w-[28%] bg-[#F8FAFC] flex flex-col h-full overflow-hidden border-t lg:border-t-0 border-gray-200/60">
         
         {/* TAB CONTROLLER */}
@@ -239,7 +238,7 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
 
             <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3">
               {dictLoading && (
-                <div className="bg-white rounded-xl p-5 text-center border border-gray-100 flex-1 flex flex-col items-center justify-center gap-2">
+                <div className="bg-white rounded-xl p-5 text-center border border-gray-100 py-12 flex flex-col items-center justify-center gap-2">
                   <Loader2 className="w-5 h-5 text-indigo-500 animate-spin" />
                   <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md animate-pulse">Groq LLM Engine đang phân tích...</span>
                 </div>
@@ -283,7 +282,7 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
           </>
         )}
 
-        {/* --- SIDEBAR CHẾ ĐỘ 2: HỎI ĐÁP TÀI LIỆU (RAG) - TỐI GIẢN TOÀN DIỆN --- */}
+        {/* --- SIDEBAR CHẾ ĐỘ 2: HỎI ĐÁP TÀI LIỆU (RAG) --- */}
         {sidebarMode === 'rag' && (
           <>
             <div className="p-3 bg-white border-b border-gray-100 shrink-0">
@@ -301,11 +300,11 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
               </form>
             </div>
 
-            {/* Khung chứa kết quả: Tận dụng flex-1 và overflow-y-auto để cuộn mượt mà */}
+            {/* Đã sửa container: Cuộn độc lập cho danh sách phản hồi */}
             <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3">
               
               {ragLoading && (
-                <div className="bg-white rounded-xl p-6 text-center border border-gray-100 flex-1 flex flex-col items-center justify-center gap-2">
+                <div className="bg-white rounded-xl p-6 text-center border border-gray-100 py-12 flex flex-col items-center justify-center gap-2">
                   <Loader2 className="w-5 h-5 text-indigo-500 animate-spin" />
                   <div className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded animate-pulse">
                     <Sparkles size={10} />
@@ -315,25 +314,27 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
               )}
 
               {!ragLoading && !llmResponse && (
-                <div className="text-center text-gray-400 text-[10px] font-medium py-12 border border-dashed border-gray-200 bg-white rounded-xl mx-1 flex-1 flex flex-col items-center justify-center">
+                <div className="text-center text-gray-400 text-[10px] font-medium py-12 border border-dashed border-gray-200 bg-white rounded-xl mx-1 flex flex-col items-center justify-center">
                   <p>Đặt câu hỏi phân tích tài liệu.</p>
                   <p className="text-[9px] text-gray-300 mt-0.5">Mô hình cục bộ xử lý trực tiếp trên browser.</p>
                 </div>
               )}
 
-              {/* KHỐI PHẢN HỒI AI TOÀN DIỆN: Đã gỡ bỏ giới hạn chiều cao cố định */}
+              {/* SỬA ĐỔI CHÍNH TẠI ĐÂY: Loại bỏ cấu trúc flex-1 lồng nhau gây triệt tiêu chiều cao */}
               {!ragLoading && llmResponse && (
-                <div className="w-full bg-white rounded-xl border border-indigo-100/70 shadow-3xs p-3.5 flex flex-col gap-2.5 animate-fade-in flex-1 min-h-0">
-                  <div className="flex items-center gap-1.5 border-b border-gray-50 pb-2 shrink-0">
+                <div className="w-full bg-white rounded-xl border border-indigo-100/70 shadow-3xs p-3.5 flex flex-col gap-2.5 animate-fade-in block">
+                  <div className="flex items-center gap-1.5 border-b border-gray-50 pb-2">
                     <div className="p-1 bg-indigo-50 rounded-md text-indigo-600">
                       <Sparkles size={11} />
                     </div>
                     <span className="text-[11px] font-bold text-gray-900">Trợ lý AI phản hồi:</span>
                   </div>
                   
-                  {/* Nội dung chiếm trọn không gian trống và tự cuộn khi câu trả lời quá dài */}
-                  <div className="text-xs font-medium text-gray-700 leading-relaxed overflow-y-auto pr-1 whitespace-pre-line flex-1">
-                    {llmResponse}
+                  {/* Sử dụng text trần kết hợp prose-sm linh hoạt hơn */}
+                  <div className="text-gray-700 whitespace-pre-wrap">
+                    <div className="prose prose-slate prose-sm max-w-none text-xs font-semibold text-gray-700 leading-relaxed prose-headings:font-bold prose-headings:text-gray-950 prose-headings:mt-3 prose-headings:mb-1 prose-p:leading-relaxed prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 break-words">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{llmResponse}</ReactMarkdown>
+                    </div>
                   </div>
                 </div>
               )}

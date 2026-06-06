@@ -1,5 +1,5 @@
 import { keyApi } from "@/app/dashboard/settings/api-key/_api/key.api";
-import { readJsonFromOPFS } from "./search-logic";
+import { readJsonFromOPFS } from "@/services/local-knowledge-search.service";
 
 export interface MCQQuestion {
   question: string;
@@ -52,7 +52,7 @@ export async function generateMCQBankFromOPFS(
 ): Promise<MCQQuestion[]> {
   const targetCount = Math.min(Math.max(requestedQuestions, 1), 20); // giới hạn số lượng câu hỏi
 
-  const apiKey = await keyApi.getRandomKey("groq"); 
+  const apiKey = await keyApi.getKey(1); 
   if (!apiKey) {
     throw new Error("Không thể khởi tạo tiến trình: Không tìm thấy Groq API Key hợp lệ.");
   }

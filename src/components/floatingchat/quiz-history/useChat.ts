@@ -1,11 +1,11 @@
 "use client";
 
+import { AgentOrchestrator } from "@/agent/core/orchestrator";
+import { AgentSession, ChatMessage, IAgent } from "@/agent/core/types";
 import { useState, useCallback, useEffect, useRef } from "react";
-import { AgentConfig, AgentSession, ChatMessage } from "@/agent/core/types";
-import { groqChat } from "@/agent/core/orchestrator";
 
 interface UseAgentChatProps {
-  agent: AgentConfig;
+  agent: IAgent;
   initialCollectedData?: Record<string, any>;
 }
 
@@ -18,7 +18,7 @@ export function useAgentChat({ agent, initialCollectedData = {} }: UseAgentChatP
     collectedData: initialCollectedData,
     state: {
       step: 0,
-      maxSteps: agent.maxSteps || 10,
+      maxSteps: agent.config.maxSteps || 10,
       isFinished: false,
     },
   });
@@ -28,59 +28,67 @@ export function useAgentChat({ agent, initialCollectedData = {} }: UseAgentChatP
       ...sessionRef.current.collectedData,
       ...initialCollectedData,
     };
+    console.log("[useAgentChat] Đồng bộ initialCollectedData mới:", sessionRef.current.collectedData);
   }, [initialCollectedData]);
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return;
 
     setIsLoading(true);
-
-    // 1. Giả lập hiển thị tin nhắn của User trên UI trước cho mượt mà
     setMessages((prev) => [...prev, { role: "user", content: text }]);
 
+    // console.log("[useAgentChat] BẮT ĐẦU GỬI TIN NHẮN");
+    // console.log("[useAgentChat] Tin nhắn User:", text);
+    // console.log("[useAgentChat] Dữ liệu hiện tại trong Session (collectedData):", sessionRef.current.collectedData);
+    // console.log("[useAgentChat] Độ dài lịch sử chat trước khi chạy (history length):", sessionRef.current.history.length);
+
     try {
-      // 2. CHỮA LỖI ĐÓNG BĂNG CHAT: Reset lại trạng thái engine trước khi gọi groqChat
-      // Việc này giúp phá vỡ cờ `isFinished: true` cũ, cho phép vòng lặp while chạy tiếp lượt chat mới
       sessionRef.current.state.isFinished = false;
       sessionRef.current.state.step = 0;
 
-      // 3. Kích hoạt core điều phối gốc
-      await groqChat({
+      await AgentOrchestrator.run({
         message: text,
         agent,
         session: sessionRef.current,
       });
 
-      // 4. CHỮA LỖI PHẢN HỒI DƯ THỪA TRỐNG:
-      // Lọc bỏ các tin nhắn của assistant có content rỗng (chỉ đóng vai trò trigger tool_calls)
-      // Điều này giúp UI chỉ hiển thị tin nhắn user, tool kết quả (nếu muốn) và câu trả lời chữ cuối cùng.
-      const cleanHistory = sessionRef.current.history.filter((msg) => {
-        // Nếu là tin nhắn của trợ lý nhưng không có chữ gì thì loại bỏ khỏi UI
-        if (msg.role === "assistant" && !msg.content?.trim()) {
-          return false;
-        }
+      // console.log("[useAgentChat] Lõi điều phối Agent hoàn thành lượt chạy.");
+      // console.log("[useAgentChat] Trạng thái Session sau khi chạy:", sessionRef.current.state);
+      // console.log("[useAgentChat] Lịch sử chat gốc nhận về từ Core (Full History):", sessionRef.current.history);
+
+      const cleanUIHistory = sessionRef.current.history.filter((msg) => {
+        if (msg.role === "tool") return false;
+        if (msg.role === "assistant" && !msg.content?.trim() && msg.tool_calls) return false;
         return true;
       });
 
-      // Cập nhật mảng sạch lên giao diện
-      setMessages(cleanHistory);
+      console.log("[useAgentChat] Lịch sử chat sau khi lọc sạch hiển thị UI (Clean UI History):", cleanUIHistory);
+      setMessages(cleanUIHistory);
 
     } catch (error) {
-      console.error("Lỗi hệ thống điều phối Agent:", error);
+      console.error("[useAgentChat] HỆ THỐNG ĐIỀU PHỐI AGENT BỊ LỖI CẤP THẤP!");
+      console.error("[useAgentChat] Chi tiết lỗi phát sinh:", error);
+      console.error("[useAgentChat] Trạng thái Snapshot của Session tại thời điểm lỗi:", {
+        agentConfig: agent.config,
+        sessionSnapshot: JSON.parse(JSON.stringify(sessionRef.current))
+      });
+
       setMessages((prevMsgs) => [
         ...prevMsgs,
         { role: "system", content: "Đã xảy ra lỗi trong quá trình Agent xử lý dữ liệu." },
       ]);
     } finally {
       setIsLoading(false);
+      console.log("[useAgentChat] === KẾT THÚC LƯỢT XỬ LÝ AGENT ===");
     }
   }, [agent, isLoading]);
 
   const resetChat = useCallback(() => {
+    console.log("[useAgentChat] Tiến hành làm mới toàn bộ cuộc trò chuyện.");
     sessionRef.current.history = [];
     sessionRef.current.state = {
       step: 0,
-      maxSteps: agent.maxSteps || 10,
+      maxSteps: agent.config.maxSteps || 10,
       isFinished: false,
     };
     setMessages([]);

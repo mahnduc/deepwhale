@@ -57,10 +57,11 @@ class MarkdownChunker {
       chunkSize: this.chunkSize,
       chunkOverlap: this.chunkOverlap,
       separators: [
-        "\n## ",      // H2 headers
-        "\n### ",     // H3 headers
-        "\n#### ",    // H4 headers
-        "\n##### ",   // H5 headers
+        "\n# ",
+        "\n## ",      
+        "\n### ",
+        "\n#### ",
+        "\n##### ",
         "\n\n",       // Paragraphs
         "\n",         // Lines
         ". ",         // Sentences
@@ -296,67 +297,6 @@ class MarkdownChunker {
       },
     };
     return JSON.stringify(output, null, 2);
-  }
-
-  /**
-   * In thống kê chunks
-   */
-  printStatistics(chunks: ProcessedChunk[]): void {
-    console.log("\nTHỐNG KÊ CHUNKS:");
-    console.log("═".repeat(60));
-    console.log(`Tổng số chunks: ${chunks.length}`);
-    console.log(
-      `Tokens trung bình: ${Math.round(chunks.reduce((sum, c) => sum + c.tokenCount, 0) / chunks.length)}`
-    );
-    console.log(`Token nhỏ nhất: ${Math.min(...chunks.map((c) => c.tokenCount))}`);
-    console.log(`Token lớn nhất: ${Math.max(...chunks.map((c) => c.tokenCount))}`);
-
-    const typeCount = chunks.reduce(
-      (acc, c) => {
-        acc[c.metadata.contentType] = (acc[c.metadata.contentType] || 0) + 1;
-        return acc;
-      },
-      {} as Record<string, number>
-    );
-
-    console.log("\nPhân bố theo loại:");
-    Object.entries(typeCount).forEach(([type, count]) => {
-      const percentage = ((count / chunks.length) * 100).toFixed(1);
-      console.log(`  ${type.padEnd(10)}: ${count} chunks (${percentage}%)`);
-    });
-
-    const smallChunks = chunks.filter((c) => c.tokenCount < this.minChunkSize);
-    if (smallChunks.length > 0) {
-      console.log(`\n  Có ${smallChunks.length} chunks nhỏ hơn ${this.minChunkSize} tokens`);
-    }
-
-    console.log("═".repeat(60) + "\n");
-  }
-
-  /**
-   * In preview chi tiết của chunks
-   */
-  printDetailedPreview(chunks: ProcessedChunk[], count: number = 3): void {
-    console.log(`PREVIEW ${Math.min(count, chunks.length)} CHUNKS:\n`);
-
-    chunks.slice(0, count).forEach((chunk, idx) => {
-      console.log(`${"─".repeat(60)}`);
-      console.log(`Chunk ${idx + 1}/${chunks.length}`);
-      console.log(`${"─".repeat(60)}`);
-      console.log(`ID: ${chunk.metadata.chunkId}`);
-      console.log(`Headings: ${chunk.metadata.headings.join(" > ") || "(none)"}`);
-      console.log(`Type: ${chunk.metadata.contentType}`);
-      console.log(`Tokens: ${chunk.tokenCount}`);
-      console.log(
-        `Lines: ${chunk.metadata.startLine} - ${chunk.metadata.endLine}`
-      );
-      console.log(`\nContent preview:`);
-      console.log(
-        chunk.content.substring(0, 200).replace(/\r?\n/g, "\n") +
-          (chunk.content.length > 200 ? "..." : "")
-      );
-      console.log();
-    });
   }
 }
 

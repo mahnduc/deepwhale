@@ -1,28 +1,43 @@
-import { keyService } from "../_services/key.service";
+import { keyService, GroqKeyItem, KeysSchema } from "../_services/key.service";
 
 export const keyApi = {
-  async addKey(provider: string, key: string) {
-    return await keyService.add(provider, key);
+  /**
+   * Thêm mới API Key cho Groq (Tự động sinh ID tăng dần từ 1)
+   */
+  async addKey(key: string): Promise<void> {
+    return await keyService.add(key);
   },
 
-  async removeKey(provider: string, key: string) {
-    return await keyService.remove(provider, key);
+  /**
+   * Xóa API Key của Groq dựa theo ID
+   */
+  async removeKey(id: number): Promise<void> {
+    return await keyService.remove(id);
   },
 
-  async getProviders() {
-    return await keyService.getProviders();
+  /**
+   * Lấy danh sách tất cả key Groq (Đã sắp xếp theo ID tăng dần)
+   * Trả về dạng: GroqKeyItem[] (ví dụ: [{id: 1, key: "..."}, {id: 2, key: "..."}])
+   */
+  async getKeys(): Promise<GroqKeyItem[]> {
+    return await keyService.getKeys();
   },
 
-  async getKeys(provider: string) {
-    return await keyService.getKeys(provider);
-  },
-
-  async getAll() {
+  /**
+   * Lấy toàn bộ cấu trúc file JSON (Phục vụ dữ liệu thô, backup hoặc debug)
+   */
+  async getAll(): Promise<KeysSchema> {
     return await keyService.load();
   },
 
-  async getRandomKey(provider: string) {
-    return await keyService.getRandomKey(provider);
+  /**
+   * Lấy chuỗi API Key phục vụ xử lý công việc:
+   * - keyApi.getKey(3) -> Trả về chuỗi key của bản ghi có id = 3
+   * - keyApi.getKey()  -> Trả về chuỗi key đầu tiên trong hệ thống (id nhỏ nhất)
+   */
+  async getKey(id?: number): Promise<string> {
+    let apiKey = await keyService.getKey(id)
+    // console.log("[SETTINGS:KEY.API] Api key đang sử dụng:", apiKey)
+    return apiKey;
   }
-
 };
