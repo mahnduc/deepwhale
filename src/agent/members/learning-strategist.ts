@@ -47,9 +47,16 @@ function analyzeTrendAndDuration(data: ChartDataPoint[]): TrendAnalysisResult {
     };
   }
 
-  const sortedData = [...data].sort((a, b) => Number(a.timestamp || 0) - Number(b.timestamp || 0));
-  const firstAcc = sortedData[0].accuracy || 0;
-  const lastAcc = sortedData[sortedData.length - 1].accuracy || 0;
+  // Lấy 3 lần luyện tập mới nhất
+  const toMs = (ts: string | number) =>
+    typeof ts === "string" ? new Date(ts).getTime() : (ts as number);
+
+  const sortedData = [...data]
+    .sort((a, b) => toMs(a.timestamp || 0) - toMs(b.timestamp || 0)) // tăng dần: cũ → mới
+    .slice(-3);                                                        // 3 phần tử cuối = 3 lần mới nhất
+
+  const firstAcc = sortedData[0].accuracy || 0;                       // lần cũ nhất trong 3
+  const lastAcc = sortedData[sortedData.length - 1].accuracy || 0;    // lần mới nhất trong 3
   const diff = lastAcc - firstAcc;
   const currentAcc = lastAcc;
 
@@ -80,7 +87,6 @@ function analyzeTrendAndDuration(data: ChartDataPoint[]): TrendAnalysisResult {
   return { summary, recommendedDays };
 }
 
-// --- DEFINITIONS ---
 const analyzeQuizHistoryTool: ToolDefinition = {
   type: "function",
   function: {
@@ -127,7 +133,6 @@ const saveTimetableToOpfsTool: ToolDefinition = {
   },
 };
 
-// --- EXECUTORS ---
 const analyzeQuizHistoryExecutor: ToolExecutor = {
   name: "analyze_quiz_history",
   async execute(_args: any, session: AgentSession): Promise<ToolResult> {
@@ -148,11 +153,19 @@ const analyzeQuizHistoryExecutor: ToolExecutor = {
       const analysis = analyzeTrendAndDuration(quizRequest.chartData);
       const startDateStr = new Date().toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
 
+      const timetableName = (quizRequest.quizTitle || "lich_on_tap")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/đ/gi, "d")
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_|_$/g, "");
+
       return {
         success: true,
         data: {
           hasEnoughData: quizRequest.chartData.length >= 2,
           quizTitle: quizRequest.quizTitle,
+          timetableName,                    // ← trả về slug đã chuẩn hóa để model dùng lại
           trendSummary: analysis.summary,
           recommendedDays: analysis.recommendedDays,
           startDate: startDateStr,
@@ -180,18 +193,26 @@ const saveTimetableToOpfsExecutor: ToolExecutor = {
       const fileHandle = await timetableDir.getFileHandle(fileName, { create: true });
 
       const writable = await fileHandle.createWritable({ keepExistingData: false });
-      
+
+      const createdAt = new Date().toISOString();
+
+      const schedule = (args.schedule as any[]).map(item => ({
+        day: item.day,
+        durationMinutes: item.durationMinutes,
+        actionItems: item.actionItems,
+      }));
+
       const filePayload = {
         timetableData: {
           timetableName: args.timetableName,
           quizTitle: args.quizTitle,
-          createdAt: args.createdAt,
+          createdAt,
           overallStrategySummary: args.overallStrategySummary,
-          schedule: args.schedule
+          schedule,
         }
       };
 
-      await writable.write(JSON.stringify(filePayload));
+      await writable.write(JSON.stringify(filePayload, null, 2));
       await writable.close();
 
       return {
@@ -214,7 +235,7 @@ QUY TẮC BẮT BUỘC KHI GỌI CÔNG CỤ (NGHIÊM NGẶT ĐỐI VỚI GROQ):
 - KHÔNG ĐƯỢC TỰ SINH hoặc chèn các chuỗi văn bản dạng giả thẻ XML như "<function=...>" hay "</function>" vào câu trả lời.
 - KHÔNG ĐƯỢC in các khối mã JSON thô trực tiếp ra màn hình chat với người dùng.
 - Khi người dùng bắt đầu cuộc hội thoại, hãy lập tức kích hoạt cấu trúc gọi hàm hệ thống (Function Calling) chuẩn của API.
-- Chuyển đổi "quizTitle" thành định dạng slug không dấu, viết liền cho "timetableName" (Ví dụ: "lich_on_tap_toan_10").
+- Trường "timetableName" phải sao chép CHÍNH XÁC giá trị 'timetableName' nhận được từ kết quả tool analyze_quiz_history, KHÔNG tự tạo lại hay đổi tên.
 
 NGÔN NGỮ & PHONG CÁCH:
 - Giao tiếp như bạn bè đồng trang lứa.
@@ -242,7 +263,7 @@ Bước 3 (Thực thi & Xuất kết quả):
 
 Cấu trúc tham số điền vào tool:
 {
-  "timetableName": "chuoi_slug_viet_lien_khong_dau_dua_tren_quiz_title",
+  "timetableName": "[Sao chép CHÍNH XÁC giá trị 'timetableName' nhận được từ kết quả tool analyze_quiz_history, KHÔNG tự tạo lại]",
   "quizTitle": "Tiêu đề bài trắc nghiệm nhận từ tool",
   "createdAt": "Chuỗi ISOString hiện tại",
   "overallStrategySummary": "Tóm tắt chiến lược phân bổ thời gian sửa lỗi sai để tăng % chính xác",
@@ -269,7 +290,7 @@ export class QuizStrategyCoachAgent implements IAgent {
     model: GROQ_DEFAULT_MODEL,
     temperature: 0.1,
     maxSteps: 2,
-    maxTokens: 300, // Tăng nhẹ hạn mức hội thoại thông thường để tránh nuốt chữ ở bước 1
+    maxTokens: 300,
     tools: [analyzeQuizHistoryTool, saveTimetableToOpfsTool],
     executors: [analyzeQuizHistoryExecutor, saveTimetableToOpfsExecutor],
   };
@@ -281,29 +302,26 @@ export class QuizStrategyCoachAgent implements IAgent {
     const userText = latestMessage.toLowerCase();
     const isSystemWaitingForConfirm = lastAssistantContent.includes("xác nhận lịch trình này");
 
-    // 1. Kiểm tra xem user có gõ từ khóa đồng ý trùng khớp với trạng thái hệ thống đang chờ hay không
     const isConfirming = isSystemWaitingForConfirm && ["ok", "xác nhận", "đồng ý", "tạo đi", "chốt"].some(keyword => 
       userText.includes(keyword)
     );
 
-    // 2. Kiểm tra xem lượt request hiện tại có nằm trong luồng xử lý hoặc phản hồi kết quả của tool save_timetable hay không
     const isToolExecutionLoop = history.some(msg => 
       (msg.role === "tool" && msg.name === "save_timetable_to_opfs") ||
       (msg.role === "assistant" && msg.tool_calls?.some(tc => tc.function.name === "save_timetable_to_opfs"))
     );
 
-    // Nếu thuộc một trong hai trạng thái trên, nâng mạnh tài nguyên để tạo JSON full chuỗi ngày dài
     if (isConfirming || isToolExecutionLoop) {
       return {
-        temperature: 0.0,  // Ép nhiệt độ về 0 giúp Groq gọi tool chuẩn xác, không tự ý sáng tạo cấu trúc
-        maxTokens: 2500,   // Nới rộng thoải mái để không bị nuốt chuỗi JSON của lịch trình 7 ngày
+        temperature: 0.0,
+        maxTokens: 2250,
         maxSteps: 3
       };
     }
 
     return {
       temperature: 0.5,
-      maxTokens: 300,   
+      maxTokens: 150,   
       maxSteps: 2
     };
   }

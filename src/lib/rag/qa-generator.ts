@@ -50,9 +50,9 @@ export async function generateMCQBankFromOPFS(
   folderName: string,
   requestedQuestions: number = 10
 ): Promise<MCQQuestion[]> {
-  const targetCount = Math.min(Math.max(requestedQuestions, 1), 20); // giới hạn số lượng câu hỏi
+  const targetCount = Math.min(Math.max(requestedQuestions, 1), 20);
 
-  const apiKey = await keyApi.getKey(1); 
+  const apiKey = await keyApi.getKey(1);
   if (!apiKey) {
     throw new Error("Không thể khởi tạo tiến trình: Không tìm thấy Groq API Key hợp lệ.");
   }
@@ -87,90 +87,60 @@ export async function generateMCQBankFromOPFS(
   while (mcqBank.length < targetCount && chunkIndex < validChunks.length) {
     const remainingToGenerate = targetCount - mcqBank.length;
     const questionsToAskFromThisChunk = remainingToGenerate >= 2 ? 2 : 1;
-    
+
     const chunk = validChunks[chunkIndex];
     chunkIndex++;
 
     try {
-      const prompt = `Bạn là chuyên gia ra đề thi ngôn ngữ. Phân tích Ngữ liệu bên dưới, sau đó tạo đúng ${questionsToAskFromThisChunk} câu hỏi trắc nghiệm.
+      // Phát hiện loại ngữ liệu phía client để chọn rule block phù hợp,
+      // giúp prompt ngắn hơn và tập trung hơn.
+      const isLanguageLearningChunk = /\b(vocab|vocabulary|grammar|phrase|idiom|tense|pronunciation|spelling|synonym|antonym|definition|means|translate|translation|flashcard|word|phát âm|ngữ pháp|từ vựng|thành ngữ|cụm từ|dịch nghĩa|nghĩa là|có nghĩa)\b/i.test(chunk.content);
 
-BƯỚC 1 — XÁC ĐỊNH LOẠI NGỮ LIỆU:
-- Nếu ngữ liệu chứa từ vựng tiếng Anh, ngữ pháp, thành ngữ, hoặc giải thích ngôn ngữ → áp dụng QUY TẮC HỌC TIẾNG ANH
-- Trường hợp còn lại → áp dụng QUY TẮC KIẾN THỨC CHUNG
+      const languageRules = `LOẠI NGỮ LIỆU: Học tiếng Anh
+Viết toàn bộ câu hỏi và đáp án bằng TIẾNG VIỆT.
 
----
+Chọn đúng một dạng phù hợp nhất với nội dung:
+- Từ vựng:    "Từ '[word]' trong tiếng Anh có nghĩa là gì?"
+- Cụm từ:     "Cụm '[phrase]' có nghĩa là gì?"
+- Ngữ pháp:   Mô tả tình huống cụ thể → chọn cấu trúc/thì đúng
+- Dịch thuật: "Câu '[sentence]' dịch sang tiếng Việt là gì?"
 
-QUY TẮC HỌC TIẾNG ANH:
-Câu hỏi và đáp án đều viết bằng TIẾNG VIỆT.
-Ưu tiên các dạng câu hỏi:
-  + Từ vựng: "Từ '...' trong tiếng Anh có nghĩa là gì?", "Từ nào có nghĩa là '...'?"
-  + Ngữ pháp: mô tả tình huống bằng tiếng Việt, yêu cầu chọn cấu trúc/thì đúng (viết bằng tiếng Việt)
-  + Cụm từ: "Thành ngữ '...' có nghĩa là gì?", "Cụm từ nào diễn đạt nghĩa '...'?"
-  + Dịch thuật: "Câu/từ '...' dịch sang tiếng Việt là gì?"
+Yêu cầu đáp án:
+- 4 đáp án cùng từ loại, cấu trúc và độ dài tương đương
+- Đáp án nhiễu: sai nhưng dễ nhầm (đồng âm, nghĩa gần, lỗi phổ biến)
+- Không lặp lại từ khóa của câu hỏi vào đáp án`;
 
-Ví dụ tốt (từ vựng):
-{
-  "question": "Từ 'resilient' trong tiếng Anh có nghĩa là gì?",
-  "options": { "A": "Dễ vỡ, mong manh", "B": "Kiên cường, không bị đánh gục", "C": "Bướng bỉnh, cứng đầu", "D": "Thụ động, thiếu chủ động" },
-  "answer": "B"
-}
+      const generalRules = `LOẠI NGỮ LIỆU: Kiến thức chung
+Viết toàn bộ câu hỏi và đáp án bằng TIẾNG VIỆT.
 
-Ví dụ tốt (ngữ pháp):
-{
-  "question": "Khi diễn đạt hành động đã xảy ra và kéo dài trước một mốc thời gian trong quá khứ, ta dùng thì gì?",
-  "options": { "A": "Quá khứ đơn", "B": "Quá khứ tiếp diễn", "C": "Quá khứ hoàn thành tiếp diễn", "D": "Hiện tại hoàn thành" },
-  "answer": "C"
-}
+Hỏi về: định nghĩa, nguyên nhân–kết quả, đặc điểm chính, so sánh khái niệm.
 
-Ví dụ tốt (phrasal verb):
-{
-  "question": "Cụm động từ 'give up' có nghĩa là gì?",
-  "options": { "A": "Trao tặng ai đó thứ gì", "B": "Từ bỏ", "C": "Đầu hàng trước kẻ thù", "D": "Phân phát cho nhiều người" },
-  "answer": "B"
-}
+Yêu cầu câu hỏi:
+- Tự thân đủ nghĩa, không cần đọc lại ngữ liệu để hiểu
+- Hỏi thẳng: "X là gì?", "Tại sao X?", "X có đặc điểm nào?"
+- KHÔNG dùng: "Theo đoạn văn...", "Dựa vào nội dung...", "Câu nào sau đây đúng/sai..."
 
-Ví dụ XẤU (TRÁNH):
-{
-  "question": "Theo đoạn văn trên, từ nào sau đây có nghĩa gần nhất với 'resilient' trong ngữ cảnh được đề cập?",
-  "options": { "A": "Đây là từ mang nghĩa dễ vỡ và mong manh", "B": "Từ này mang nghĩa kiên cường và không bị đánh gục bởi khó khăn", ... }
-}
+Yêu cầu đáp án:
+- 4 đáp án song song về cấu trúc ngữ pháp và độ dài
+- Đáp án nhiễu: sai nhưng hợp lý, không quá dễ loại trừ
+- Không dùng "Tất cả đáp án trên" hoặc "Không có đáp án nào"`;
 
----
+      const activeRules = isLanguageLearningChunk ? languageRules : generalRules;
 
-QUY TẮC KIẾN THỨC CHUNG:
-- Câu hỏi và đáp án viết bằng TIẾNG VIỆT.
-- Hỏi về khái niệm, định nghĩa, nguyên nhân-kết quả, sự kiện chính.
-- Câu hỏi ngắn gọn, trực tiếp. KHÔNG dùng: "Theo đoạn văn...", "Câu nào sau đây đúng nhất...".
-- Đáp án song song về cấu trúc, súc tích, KHÔNG lặp lại thân câu hỏi.
+      const prompt = `Bạn là chuyên gia ra đề thi. Đọc NGỮ LIỆU bên dưới và tạo đúng ${questionsToAskFromThisChunk} câu hỏi trắc nghiệm 4 lựa chọn.
 
-Ví dụ tốt:
-{
-  "question": "Chức năng chính của ty thể trong tế bào là gì?",
-  "options": { "A": "Tổng hợp protein", "B": "Sản xuất ATP", "C": "Tiêu hóa chất thải", "D": "Điều tiết chu kỳ tế bào" },
-  "answer": "B"
-}
+${activeRules}
 
----
+QUY TẮC CHUNG:
+- Mỗi câu có đúng 4 lựa chọn A, B, C, D
+- Chỉ có 1 đáp án đúng duy nhất
+- Trường "answer" là một trong: "A", "B", "C", "D"
+- Câu hỏi ngắn gọn, rõ ý, không có mở đầu thừa
 
-QUY TẮC CHUNG CHO CẢ HAI LOẠI:
-- Đúng 4 lựa chọn (A, B, C, D) mỗi câu.
-- Trường "answer" phải là một trong: "A", "B", "C", "D".
-- Đáp án nhiễu phải sai rõ ràng nhưng dễ nhầm.
-- KHÔNG dùng mở đầu hoa mỹ, dài dòng cho câu hỏi.
+OUTPUT: JSON thuần, không markdown, không giải thích.
+{"mcq_pairs":[{"question":"...","options":{"A":"...","B":"...","C":"...","D":"..."},"answer":"A"}]}
 
-OUTPUT: JSON hợp lệ, KHÔNG bọc markdown, KHÔNG giải thích thêm.
-
-{
-  "mcq_pairs": [
-    {
-      "question": "...",
-      "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
-      "answer": "A"
-    }
-  ]
-}
-
-Ngữ liệu:
+NGỮ LIỆU:
 ${chunk.content}`;
 
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -183,7 +153,7 @@ ${chunk.content}`;
           model: "llama-3.1-8b-instant",
           messages: [{ role: "user", content: prompt }],
           temperature: 0.4,
-          response_format: { type: "json_object" } 
+          response_format: { type: "json_object" }
         })
       });
 
@@ -230,7 +200,6 @@ ${chunk.content}`;
     };
 
     const fileName = `${folderName}_quiz.json`;
-    
     const savedPath = await saveQuizToOPFSDirectory("quiz", fileName, quizPayload);
     console.log(`[OPFS Storage] Đã đồng bộ bộ đề trắc nghiệm thành công tại: ${savedPath}`);
   } else {
@@ -252,23 +221,23 @@ export async function getSavedQuizFromOPFS(
     const root = await navigator.storage.getDirectory();
     const quizDirHandle = await root.getDirectoryHandle("quiz");
     const fileName = `${folderName}_quiz.json`;
-    
+
     const fileHandle = await quizDirHandle.getFileHandle(fileName);
-    
+
     const file = await fileHandle.getFile();
     const fileContent = await file.text();
-    
+
     if (!fileContent) return null;
-    
+
     const quizData: SavedQuizData = JSON.parse(fileContent);
     return quizData;
-    
+
   } catch (error: any) {
     if (error.name === "NotFoundError") {
       console.warn(`[OPFS Storage] Không tìm thấy bộ đề trắc nghiệm nào cho: ${folderName}`);
       return null;
     }
-    
+
     console.error("Lỗi trong quá trình lấy dữ liệu Quiz từ OPFS:", error);
     throw new Error("Không thể truy xuất bộ đề trắc nghiệm từ hệ thống lưu trữ cục bộ.");
   }

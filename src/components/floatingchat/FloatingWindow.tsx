@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import { Telescope, TrendingUpDown } from 'lucide-react'; 
-import ChatWindow from './ContentWindow'; 
+import ContentWindow from './ContentWindow';
 
 export default function FloatingWindow() {
   const nodeRef = useRef<HTMLDivElement>(null);
@@ -61,7 +61,7 @@ export default function FloatingWindow() {
             style={{ touchAction: 'none' }}
           >
             {isOpen ? (
-              <ChatWindow onClose={() => setIsOpen(false)} />
+              <ContentWindow onClose={() => setIsOpen(false)} />
             ) : (
               <div className="drag-handle w-12 h-12 cursor-grab active:cursor-grabbing">
                 <div className="w-full h-full bg-linear-to-tr from-emerald-500 via-teal-600 to-cyan-600 rounded-full shadow-xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-transform duration-200 ease-out">

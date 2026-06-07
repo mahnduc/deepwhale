@@ -73,10 +73,9 @@ export const QuizDetailChart: React.FC<QuizDetailChartProps> = ({ quizTitle, cha
       </div>
 
       <div className="flex-1 p-6 overflow-y-auto space-y-6">
-        {/* Khung biểu đồ Recharts */}
         <div className="bg-slate-50/50 rounded-xl p-4 border border-slate-100">
           <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
-            <BarChart2 size={16} className="text-blue-500" /> Biểu đồ đường tăng trưởng chính xác (%)
+            <BarChart2 size={16} className="text-blue-500" /> Biểu đồ theo dõi kết quả học tập
           </h3>
           
           <div className="w-full h-72">

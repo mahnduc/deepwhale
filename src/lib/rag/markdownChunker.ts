@@ -2,9 +2,6 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { Document } from "@langchain/core/documents";
 import { opfsApi } from "../opfs/opfsApis";
 
-/**
- * Interface cho metadata của mỗi chunk
- */
 interface ChunkMetadata {
   source: string;
   chunkId: string;

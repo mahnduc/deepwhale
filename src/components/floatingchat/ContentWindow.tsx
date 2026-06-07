@@ -28,7 +28,7 @@ export default function ContentWindow({ onClose }: ChatWindowProps) {
     <Draggable nodeRef={nodeRef} handle=".drag-handle" bounds={false}>
       <div ref={nodeRef} className="fixed z-50" style={{ top: '10%', left: '20%' }}>
         <Resizable
-          defaultSize={{ width: 960, height: 650 }}
+          defaultSize={{ width: 960, height: 600 }}
           minWidth={450}
           minHeight={350}
           maxWidth="200vw"

@@ -17,7 +17,6 @@ export interface SavedWord {
 }
 
 export interface UseCollectionReturn {
-  // Trạng thái danh sách tổng
   collections: string[];
   selectedCollection: string | null;
   wordsList: SavedWord[];
@@ -27,7 +26,6 @@ export interface UseCollectionReturn {
   newCollectionName: string;
   scrollbarClass: string;
   
-  // Trạng thái chi tiết (Detail)
   isDeleting: boolean;
   deletingWordIndex: number | null;
   localWordsList: SavedWord[];
@@ -35,14 +33,12 @@ export interface UseCollectionReturn {
   newWord: string;
   isAddingWord: boolean;
 
-  // Hàm điều khiển state cơ bản
   setIsModalOpen: (isOpen: boolean) => void;
   setNewCollectionName: (name: string) => void;
   setIsAddModalOpen: (isOpen: boolean) => void;
   setNewWord: (word: string) => void;
   resetSelection: () => void;
 
-  // Các hàm xử lý nghiệp vụ I/O & API
   handleSpeak: (text: string) => void;
   loadCollections: () => Promise<void>;
   handleCreateCollection: (e: React.FormEvent | string) => Promise<string>;
@@ -54,7 +50,6 @@ export interface UseCollectionReturn {
 }
 
 export function useCollection(): UseCollectionReturn {
-  // --- States Danh Sách Tổng ---
   const [collections, setCollections] = useState<string[]>([]);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   const [wordsList, setWordsList] = useState<SavedWord[]>([]);
@@ -63,7 +58,6 @@ export function useCollection(): UseCollectionReturn {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [newCollectionName, setNewCollectionName] = useState<string>('');
 
-  // --- States (Detail) ---
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [deletingWordIndex, setDeletingWordIndex] = useState<number | null>(null);
   const [localWordsList, setLocalWordsList] = useState<SavedWord[]>([]);
@@ -74,12 +68,10 @@ export function useCollection(): UseCollectionReturn {
   const scrollbarClass =
     'overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-[#E5E5E5] [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#B2BEC3]';
 
-  // Đồng bộ localWordsList khi wordsList thay đổi từ phía cha
   useEffect(() => {
     setLocalWordsList(wordsList);
   }, [wordsList]);
 
-  // Phát âm từ vựng (Web Speech API)
   const handleSpeak = (text: string) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -90,11 +82,10 @@ export function useCollection(): UseCollectionReturn {
     }
   };
 
-  // Quét danh sách các tệp bộ sưu tập .json từ OPFS
   const loadCollections = async () => {
     try {
       const root = await navigator.storage.getDirectory();
-      const dirHandle = await root.getDirectoryHandle('system-collections', { create: true });
+      const dirHandle = await root.getDirectoryHandle('vocabulary-list', { create: true });
       const fileNames: string[] = [];
       // @ts-ignore
       for await (const entry of dirHandle.values()) {
@@ -112,7 +103,6 @@ export function useCollection(): UseCollectionReturn {
     loadCollections();
   }, []);
 
-  // Cập nhật: Chấp nhận cả FormEvent (UI thông thường) và chuỗi tên trực tiếp (Tạo tự động)
   const handleCreateCollection = async (e: React.FormEvent | string): Promise<string> => {
     let rawName = '';
     if (typeof e === 'string') {
@@ -128,7 +118,7 @@ export function useCollection(): UseCollectionReturn {
     const fileName = trimmedName.endsWith('.json') ? trimmedName : `${trimmedName}.json`;
     try {
       const root = await navigator.storage.getDirectory();
-      const dirHandle = await root.getDirectoryHandle('system-collections', { create: true });
+      const dirHandle = await root.getDirectoryHandle('vocabulary-list', { create: true });
       const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
       const writable = await fileHandle.createWritable();
       await writable.write(JSON.stringify([]));
@@ -146,14 +136,13 @@ export function useCollection(): UseCollectionReturn {
     }
   };
 
-  // Chọn bộ sưu tập và đọc nội dung tệp JSON tương ứng
   const handleSelectCollection = async (fileName: string) => {
     setSelectedCollection(fileName);
     setIsLoading(true);
     setError(null);
     try {
       const root = await navigator.storage.getDirectory();
-      const dirHandle = await root.getDirectoryHandle('system-collections', { create: true });
+      const dirHandle = await root.getDirectoryHandle('vocabulary-list', { create: true });
       const fileHandle = await dirHandle.getFileHandle(fileName);
       const file = await fileHandle.getFile();
       const text = await file.text();
@@ -185,7 +174,6 @@ export function useCollection(): UseCollectionReturn {
     }
   };
 
-  // Xóa toàn bộ tệp bộ sưu tập hiện tại khỏi hệ thống OPFS
   const handleDeleteCollection = async () => {
     if (!selectedCollection) return;
     const collectionName = selectedCollection.replace('.json', '');
@@ -197,7 +185,7 @@ export function useCollection(): UseCollectionReturn {
     setIsDeleting(true);
     try {
       const root = await navigator.storage.getDirectory();
-      const dirHandle = await root.getDirectoryHandle('system-collections', { create: false });
+      const dirHandle = await root.getDirectoryHandle('vocabulary-list', { create: false });
       await dirHandle.removeEntry(selectedCollection);
       await loadCollections();
       resetSelection();
@@ -209,7 +197,6 @@ export function useCollection(): UseCollectionReturn {
     }
   };
 
-  // Xóa một từ khỏi mảng và cập nhật lại tệp JSON
   const handleDeleteWord = async (wordIndex: number, wordText: string) => {
     if (!selectedCollection) return;
     const confirmDelete = window.confirm(`Bạn có chắc chắn muốn xóa từ "${wordText}" khỏi bộ sưu tập không?`);
@@ -221,7 +208,7 @@ export function useCollection(): UseCollectionReturn {
     
     try {
       const root = await navigator.storage.getDirectory();
-      const dirHandle = await root.getDirectoryHandle('system-collections', { create: false });
+      const dirHandle = await root.getDirectoryHandle('vocabulary-list', { create: false });
       const fileHandle = await dirHandle.getFileHandle(selectedCollection, { create: false });
       const writable = await fileHandle.createWritable();
       await writable.write(JSON.stringify(updatedWordsList, null, 2));
@@ -236,7 +223,6 @@ export function useCollection(): UseCollectionReturn {
     }
   };
 
-  // Hàm trợ năng ghi đè/thêm mới từ đã định dạng vào tệp OPFS
   const saveWordToCollection = async (entry: CustomDictionaryEntry) => {
     if (!selectedCollection || !entry.ai || !entry.ai.partsOfSpeech) return;
 
@@ -253,7 +239,7 @@ export function useCollection(): UseCollectionReturn {
     };
 
     const root = await navigator.storage.getDirectory();
-    const dirHandle = await root.getDirectoryHandle('system-collections', { create: false });
+    const dirHandle = await root.getDirectoryHandle('vocabulary-list', { create: false });
     const fileHandle = await dirHandle.getFileHandle(selectedCollection, { create: false });
     
     let currentWords: SavedWord[] = [];
@@ -285,7 +271,6 @@ export function useCollection(): UseCollectionReturn {
     setWordsList(currentWords);
   };
 
-  // Tra cứu từ trên Groq và thêm vào bộ sưu tập hiện tại
   const handleAddWord = async () => {
     if (!newWord.trim()) return;
     try {
@@ -314,19 +299,16 @@ export function useCollection(): UseCollectionReturn {
     }
   };
 
-  // TÍNH NĂNG MỚI: Nhận từ từ UI ngoài, tự động kiểm tra, tạo file OPFS và thêm từ trực tiếp
   const handleSaveDirectToCollection = async (targetFileName: string, word: string, data: any) => {
     try {
       const root = await navigator.storage.getDirectory();
-      const dirHandle = await root.getDirectoryHandle('system-collections', { create: true });
+      const dirHandle = await root.getDirectoryHandle('vocabulary-list', { create: true });
       
       const jsonFileName = targetFileName.endsWith('.json') ? targetFileName : `${targetFileName}.json`;
       
-      // Tự động kiểm tra file tồn tại chưa, nếu chưa thì tạo mới
       try {
         await dirHandle.getFileHandle(jsonFileName, { create: false });
       } catch (e) {
-        // Lỗi nghĩa là file chưa tồn tại -> Khởi tạo
         const fileHandle = await dirHandle.getFileHandle(jsonFileName, { create: true });
         const writable = await fileHandle.createWritable();
         await writable.write(JSON.stringify([]));
@@ -334,7 +316,6 @@ export function useCollection(): UseCollectionReturn {
         await loadCollections();
       }
 
-      // Đọc dữ liệu hiện tại từ file
       const fileHandle = await dirHandle.getFileHandle(jsonFileName, { create: false });
       const file = await fileHandle.getFile();
       const text = await file.text();
@@ -348,7 +329,6 @@ export function useCollection(): UseCollectionReturn {
         }
       }
 
-      // Chuẩn bị cấu trúc dữ liệu lưu trữ
       const cleanDataToSave: SavedWord = {
         word: word,
         phonetics: data.phonetics?.map((p: any) => p.text).filter(Boolean) || [],
@@ -359,7 +339,6 @@ export function useCollection(): UseCollectionReturn {
         })) || []
       };
 
-      // Xử lý trùng lặp
       const existingIndex = currentWords.findIndex(
         (w) => w.word.toLowerCase() === word.toLowerCase()
       );
@@ -370,12 +349,10 @@ export function useCollection(): UseCollectionReturn {
         currentWords.push(cleanDataToSave);
       }
 
-      // Ghi ngược lại OPFS
       const writable = await fileHandle.createWritable();
       await writable.write(JSON.stringify(currentWords, null, 2));
       await writable.close();
 
-      // Nếu bộ sưu tập này đang được mở xem ở một View khác thì đồng bộ luôn state
       if (selectedCollection === jsonFileName) {
         setLocalWordsList(currentWords);
         setWordsList(currentWords);
@@ -386,7 +363,6 @@ export function useCollection(): UseCollectionReturn {
     }
   };
 
-  // Quay trở lại danh mục chính
   const resetSelection = () => {
     setSelectedCollection(null);
     setWordsList([]);

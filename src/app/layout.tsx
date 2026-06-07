@@ -12,7 +12,7 @@ import LearningCoachPopup from "@/components/LearningCoachPopup";
 import FloatingWindow from "@/components/floatingchat/FloatingWindow";
 
 export const metadata: Metadata = {
-  title: "Uxie Platform",
+  title: "Learning Private",
   description: "Lofi web",
   icons: {
     icon: "/owl.png",
