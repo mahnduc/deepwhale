@@ -25,11 +25,29 @@
 </div>
 
 ---
-
-## About Uxie
-
-## The Local-first Web Philosophy
+## Introduction to StudyMind
+StudyMind is an advanced technology solution designed to optimize your learning path, transforming raw documents into a structured repository of knowledge while significantly accelerating your retention and recall efficiency.
 
 ## Key Features
+🔍 **Intelligent Document Retrieval:** Integrates a hybrid search engine powered by Lexical Search (utilizing the BM25 algorithm) combined with Large Language Models (LLMs) to ensure precise extraction of keywords and complex concepts directly from your reference materials.
 
-## Guide
+📝 **Automated Quiz Generation:** Seamlessly converts the core substance of your uploaded files into personalized multiple-choice or open-ended assessment sets, enabling instant knowledge verification.
+
+🌳 **Knowledge Tree Visualizer:** An interactive note-taking tool designed to structurally synthesize your personal notes, weaving scattered information into a cohesive, hierarchical Knowledge Tree.
+
+🤖 **AI Learning Companion:** Acts as a dedicated personal mentor. Following each quiz execution, the AI Agent deeply analyzes performance metrics to deliver detailed feedback, tailored advice, and timely motivation or praise based on your learning trajectory.
+
+## The High-Efficiency Learning Loop
+StudyMind fosters an active, continuous learning habit engineered around a robust 3-step iterative loop:
+- **Step 1: Upload & Ingest**
+  - Seamlessly import your source materials, textbooks, lecture slides, or dense academic research papers directly into the system.
+
+- **Step 2: Study & Synthesize**
+  - Read documents fluidly alongside the embedded intelligent hybrid search tools.
+  - Extract core insights, build targeted vocabularies, and systematically organize structural knowledge directly within the platform to construct your Knowledge Tree.
+
+- **Step 3: Evaluate & Optimize**
+  - Trigger on-demand automated quizzes to benchmark your actual comprehension levels.
+  - Receive immediate analytical breakdowns from the AI Agent to isolate core strengths and target critical knowledge gaps.
+
+*Repeat the cycle continuously until you achieve comprehensive mastery over the subject matter and secure your desired outcomes.*

@@ -27,9 +27,27 @@
 ---
 
 ## Giới thiệu về StudyMind
-
-## Triết lý Local-first
+StudyMind là giải pháp công nghệ giúp bạn tối ưu hóa lộ trình học tập, biến tài liệu thô thành kho tàng tri thức có hệ thống và nâng cao hiệu suất ghi nhớ.
 
 ## Tính năng nổi bật
+🔍 Tra Cứu Tài Liệu Thông Minh: Tích hợp công cụ tìm kiếm với Lexical Search sử dụng thuật toán BM25 kết hợp với LLM, giúp bạn truy xuất chính xác từ khóa và khái niệm trong tài liệu.
 
-## Hướng dẫn sử dụng
+📝 Tự Động Khởi Tạo Quiz: Chuyển đổi nội dung từ file tài liệu của bạn thành các bộ câu hỏi trắc nghiệm/tự luận cá nhân hóa để kiểm tra kiến thức ngay lập tức.
+
+🌳 Sơ Đồ Cây Tri Thức: Công cụ ghi chú giúp biến ghi chép của bạn thành cầy tri thức.
+
+🤖 Trợ Lý Ảo Đồng Hành: Đóng vai trò như một người cố vấn tận tâm. Sau mỗi bài quiz, Agent sẽ phân tích chi tiết kết quả và đưa ra những lời khuyên, lời khen ngợi hoặc động viên kịp thời dựa trên phong độ của bạn.
+
+## Vòng Lặp Học Tập Hiệu Quả
+StudyMind hướng tới việc xây dựng một thói quen học tập chủ động và liên tục cải thiện dựa trên vòng lặp 3 bước:
+- Bước 1: Tải lên tài liệu, đẩy các file tài liệu học tập, giáo trình hoặc bài nghiên cứu của bạn lên hệ thống.
+
+- Bước 2: Học và tích lũy
+  - Đọc tài liệu kết hợp sử dụng bộ tra cứu thông minh.
+  - Ghi chú các ý chính, học từ vựng và hệ thống hóa kiến thức trực tiếp trên nền tảng để kiến tạo Cây tri thức.
+
+- Bước 3: Đánh giá & Tối ưu
+  - Tự động tạo Quiz để kiểm tra mức độ hiểu bài.
+  - Nhận phản hồi và phân tích từ AI Agent để biết điểm mạnh, điểm yếu.
+
+*Lặp lại vòng lặp cho đến khi bạn hoàn toàn làm chủ kiến thức và đạt được kết quả mong muốn.*

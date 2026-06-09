@@ -1,6 +1,6 @@
 // lib/data-ingestion/api.ts
 
-import { MarkdownChunker, ProcessedChunk } from "./markdownChunker";
+import { MarkdownChunker } from "./markdownChunker";
 import { BM25Search } from "./BM25Search";
 
 export interface OPFSResponse {
