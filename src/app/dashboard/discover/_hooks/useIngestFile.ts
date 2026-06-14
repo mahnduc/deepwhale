@@ -8,7 +8,7 @@ export function useIngestFile(directoryName: string = "system-raw-file") {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [isIngesting, setIsIngesting] = useState(false);
   const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
-  const [requestedQuestions, setRequestedQuestions] = useState<number>(10);
+  const [requestedQuestions, setRequestedQuestions] = useState<number>(5);
   const [generatedQuiz, setGeneratedQuiz] = useState<MCQQuestion[]>([]);
 
   const handleSelectFile = (fileName: string) => {

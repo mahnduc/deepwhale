@@ -45,7 +45,7 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
     setIsSaved
   } = useDictionary();
 
-  // Hook 2: Tìm kiếm từ khóa RAG (BM25 Engine mới)
+  // Hook 2: Tìm kiếm từ khóa RAG
   const {
     setSelectedKB,
     query,
@@ -57,7 +57,6 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
 
   const { handleSaveDirectToCollection } = useCollection();
 
-  // Đồng bộ hóa tên thư mục tri thức (bỏ đuôi .md)
   useEffect(() => {
     if (fileName) {
       const folderName = fileName.replace(/\.[^/.]+$/, "");
@@ -65,7 +64,6 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
     }
   }, [fileName, setSelectedKB]);
 
-  // Đọc nội dung file từ OPFS kiến trúc Local-first
   useEffect(() => {
     let isMounted = true;
     async function readFileFromOPFS() {
@@ -168,7 +166,6 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
   return (
     <div className="w-full h-screen max-h-screen bg-[#F8FAFC] text-gray-800 antialiased selection:bg-indigo-100 flex flex-col lg:flex-row overflow-hidden">
       
-      {/* KHUNG TRÁI: Đọc nội dung tài liệu */}
       <div className="w-full lg:w-[72%] bg-white border-r border-gray-100 overflow-y-auto h-full flex flex-col" onMouseUp={handleTextSelection}>
         <article className="w-full max-w-3xl mx-auto px-6 sm:px-8 py-6 flex-1 min-h-full">
           <header className="mb-6 pb-4 border-b border-gray-100 flex items-center gap-3">
@@ -197,10 +194,8 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
         </article>
       </div>
 
-      {/* KHUNG PHẢI: Sidebar Dashboard (28%) */}
       <div className="w-full lg:w-[28%] bg-[#F8FAFC] flex flex-col h-full overflow-hidden border-t lg:border-t-0 border-gray-200/60">
         
-        {/* TAB CONTROLLER */}
         <div className="p-3 bg-white border-b border-gray-100 shrink-0">
           <div className="flex bg-gray-100/80 p-0.5 rounded-lg border border-gray-200/30">
             <button 
@@ -224,7 +219,6 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
           </div>
         </div>
 
-        {/* --- SIDEBAR CHẾ ĐỘ 1: TỪ ĐIỂN --- */}
         {sidebarMode === 'dictionary' && (
           <>
             <div className="p-3 bg-white border-b border-gray-100 shrink-0">
@@ -240,7 +234,7 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
               {dictLoading && (
                 <div className="bg-white rounded-xl p-5 text-center border border-gray-100 py-12 flex flex-col items-center justify-center gap-2">
                   <Loader2 className="w-5 h-5 text-indigo-500 animate-spin" />
-                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md animate-pulse">Groq LLM Engine đang phân tích...</span>
+                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md animate-pulse">Đang tra cứu...</span>
                 </div>
               )}
               
@@ -261,7 +255,7 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
                       <Volume2 size={12} />
                     </button>
                   </div>
-                  <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-0.5">
+                  <div className="space-y-2.5 max-h-55 overflow-y-auto pr-0.5">
                     {entry.ai?.partsOfSpeech?.map((pos, pIdx) => (
                       <div key={pIdx} className="space-y-1 border-b border-gray-50/60 pb-2 last:border-0 last:pb-0">
                         <span className="text-[8px] font-black uppercase bg-emerald-50 text-emerald-700 px-1 py-0.2 rounded-sm inline-block">{pos.partOfSpeech}</span>
@@ -282,7 +276,6 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
           </>
         )}
 
-        {/* --- SIDEBAR CHẾ ĐỘ 2: HỎI ĐÁP TÀI LIỆU (RAG) --- */}
         {sidebarMode === 'rag' && (
           <>
             <div className="p-3 bg-white border-b border-gray-100 shrink-0">
@@ -300,7 +293,6 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
               </form>
             </div>
 
-            {/* Đã sửa container: Cuộn độc lập cho danh sách phản hồi */}
             <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3">
               
               {ragLoading && (
@@ -320,7 +312,6 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
                 </div>
               )}
 
-              {/* SỬA ĐỔI CHÍNH TẠI ĐÂY: Loại bỏ cấu trúc flex-1 lồng nhau gây triệt tiêu chiều cao */}
               {!ragLoading && llmResponse && (
                 <div className="w-full bg-white rounded-xl border border-indigo-100/70 shadow-3xs p-3.5 flex flex-col gap-2.5 animate-fade-in block">
                   <div className="flex items-center gap-1.5 border-b border-gray-50 pb-2">
@@ -330,7 +321,6 @@ export const FileViewer: React.FC<FileViewerProps> = ({ fileName, onClose }) => 
                     <span className="text-[11px] font-bold text-gray-900">Trợ lý AI phản hồi:</span>
                   </div>
                   
-                  {/* Sử dụng text trần kết hợp prose-sm linh hoạt hơn */}
                   <div className="text-gray-700 whitespace-pre-wrap">
                     <div className="prose prose-slate prose-sm max-w-none text-xs font-semibold text-gray-700 leading-relaxed prose-headings:font-bold prose-headings:text-gray-950 prose-headings:mt-3 prose-headings:mb-1 prose-p:leading-relaxed prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 break-words">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{llmResponse}</ReactMarkdown>

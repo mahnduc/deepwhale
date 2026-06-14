@@ -228,7 +228,6 @@ export default function FlashCardViewer({
                         : "bg-white border-slate-200 text-slate-700 hover:border-[#00CEC9] hover:shadow-xs active:scale-95"
                     }`}
                 >
-                  {/* Trạng thái Icon góc phải trên để biểu thị kết quả trực quan */}
                   <div className="absolute top-1.5 right-1.5 opacity-80">
                     {isMatched && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
                     {isIncorrect && <XCircle className="w-3.5 h-3.5 text-red-500 animate-pulse" />}
@@ -251,7 +250,6 @@ export default function FlashCardViewer({
         {currentIndex + 1} / {cards.length}
       </div>
 
-      {/* Thẻ ghi nhớ */}
       <div
         className="w-full aspect-[4/3] min-h-[260px] cursor-pointer group [perspective:1000px] mb-6"
         onClick={() => setIsFlipped(!isFlipped)}
@@ -261,7 +259,6 @@ export default function FlashCardViewer({
             isFlipped ? "[transform:rotateY(180deg)]" : ""
           }`}
         >
-          {/* MẶT TRƯỚC (TIẾNG ANH) */}
           <div className="absolute inset-0 p-6 flex flex-col justify-between [backface-visibility:hidden] bg-slate-50/60 border border-slate-100 rounded-3xl">
             <div className="flex justify-between items-center w-full">
               <span className="px-2.5 py-0.5 bg-slate-200/60 text-slate-700 rounded-lg text-[11px] font-extrabold uppercase tracking-wider">
@@ -282,7 +279,6 @@ export default function FlashCardViewer({
             </div>
           </div>
 
-          {/* MẶT SAU (TIẾNG VIỆT) */}
           <div
             className="absolute inset-0 p-6 flex flex-col justify-between text-white rounded-3xl [backface-visibility:hidden] [transform:rotateY(180deg)] shadow-inner"
             style={{ backgroundColor: "#2D3748" }}
@@ -314,7 +310,6 @@ export default function FlashCardViewer({
         </div>
       </div>
 
-      {/* Điều hướng bộ thẻ */}
       <div className="flex flex-col items-center gap-4 w-full">
         <div className="flex items-center gap-4">
           <button
@@ -338,7 +333,6 @@ export default function FlashCardViewer({
           </button>
         </div>
 
-        {/* Nút Challenge kích hoạt Trò chơi ghép cặp */}
         {hasFinishedAll && (
           <button
             onClick={startPractice}

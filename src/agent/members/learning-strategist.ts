@@ -47,16 +47,15 @@ function analyzeTrendAndDuration(data: ChartDataPoint[]): TrendAnalysisResult {
     };
   }
 
-  // Lấy 3 lần luyện tập mới nhất
   const toMs = (ts: string | number) =>
     typeof ts === "string" ? new Date(ts).getTime() : (ts as number);
 
   const sortedData = [...data]
-    .sort((a, b) => toMs(a.timestamp || 0) - toMs(b.timestamp || 0)) // tăng dần: cũ → mới
-    .slice(-3);                                                        // 3 phần tử cuối = 3 lần mới nhất
+    .sort((a, b) => toMs(a.timestamp || 0) - toMs(b.timestamp || 0)) 
+    .slice(-3);
 
-  const firstAcc = sortedData[0].accuracy || 0;                       // lần cũ nhất trong 3
-  const lastAcc = sortedData[sortedData.length - 1].accuracy || 0;    // lần mới nhất trong 3
+  const firstAcc = sortedData[0].accuracy || 0;
+  const lastAcc = sortedData[sortedData.length - 1].accuracy || 0;
   const diff = lastAcc - firstAcc;
   const currentAcc = lastAcc;
 
@@ -165,7 +164,7 @@ const analyzeQuizHistoryExecutor: ToolExecutor = {
         data: {
           hasEnoughData: quizRequest.chartData.length >= 2,
           quizTitle: quizRequest.quizTitle,
-          timetableName,                    // ← trả về slug đã chuẩn hóa để model dùng lại
+          timetableName,
           trendSummary: analysis.summary,
           recommendedDays: analysis.recommendedDays,
           startDate: startDateStr,

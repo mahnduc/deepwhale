@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ChevronLeft, Calendar, BarChart2, Award, Clock, BrainCircuit } from 'lucide-react';
+import { ChevronLeft, Calendar, BarChart2, Award, Clock, BrainCircuit, Plus } from 'lucide-react';
 import AgentPage from './AgentPage'; 
 
 export interface ChartDataPoint {
@@ -67,8 +67,8 @@ export const QuizDetailChart: React.FC<QuizDetailChartProps> = ({ quizTitle, cha
           onClick={handleCreateStrategy}
           className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-medium rounded-lg shadow-sm transition-all duration-200"
         >
-          <BrainCircuit size={14} />
-          <span>Chiến lược ôn tập</span>
+          <Plus size={14} />
+          <span>Tạo lược ôn tập</span>
         </button>
       </div>
 
@@ -120,7 +120,6 @@ export const QuizDetailChart: React.FC<QuizDetailChartProps> = ({ quizTitle, cha
           </div>
         </div>
 
-        {/* Lịch sử làm bài chi tiết */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-slate-700">Lịch sử chi tiết (Từ mới đến cũ)</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

@@ -36,8 +36,6 @@ export interface GraphData {
 
 export type ViewMode = 'edit' | 'graph';
 
-// --- Utility Functions ---
-
 export function countWords(text: string): number {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
 }

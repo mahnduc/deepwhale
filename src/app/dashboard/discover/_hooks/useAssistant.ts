@@ -9,7 +9,6 @@ import { useQuiz } from "./useQuiz";
 export function useAssistant() {
   const DIR_NAME = "system-raw-file";
 
-  // 1. Khởi tạo các hook nghiệp vụ độc lập
   const { files, loading, refreshFiles, deleteFile } = useOPFSFiles(DIR_NAME);
   const { 
     quizData, 
@@ -33,19 +32,13 @@ export function useAssistant() {
     onUploadSuccess: refreshFiles,
   });
 
-  // Lưu trữ file đã xử lý gần nhất để tránh loop do thay đổi reference của hàm
   const lastIngestedFileRef = useRef<string | null>(null);
 
-  // 2. Các phần tính toán giá trị phái sinh (Computed properties)
   const cleanFolderName = selectedFile ? selectedFile.replace(/\.[^/.]+$/, "") : "";
   const isPending = isIngesting || isGeneratingQuiz;
   const isActionDisabled = !selectedFile || isPending;
 
-  // 3. Centralized Side-effects (Điều phối luồng dữ liệu liên hook)
-  
-  // TỰ ĐỘNG INGEST KHI CHỌN FILE (Chống loop triệt để)
   useEffect(() => {
-    // Nếu không có file, hoặc file này vừa mới được nạp/đang nạp thì bỏ qua
     if (!selectedFile || isIngesting || lastIngestedFileRef.current === selectedFile) {
       if (!selectedFile) lastIngestedFileRef.current = null;
       return;
@@ -57,7 +50,6 @@ export function useAssistant() {
         await handleConfirmIngestion();
       } catch (err) {
         console.error("Lỗi tự động nạp cấu trúc tri thức:", err);
-        // Nếu lỗi, reset ref để người dùng có thể click thử lại
         lastIngestedFileRef.current = null; 
       }
     };
@@ -65,7 +57,6 @@ export function useAssistant() {
     autoIngest();
   }, [selectedFile, isIngesting, handleConfirmIngestion]);
 
-  // Effect: Khi thay đổi selectedFile hoặc sinh xong Quiz -> Tải dữ liệu bài tập
   useEffect(() => {
     if (!selectedFile) {
       setQuizData(null);
@@ -76,13 +67,11 @@ export function useAssistant() {
     }
   }, [selectedFile, isGeneratingQuiz, cleanFolderName, loadQuizFromOPFS, setQuizData]);
 
-  // Effect: Khi thay đổi selectedFile -> Reset trạng thái hiển thị của UI Quiz
   useEffect(() => {
     setShowToolbar(false);
     setIsPracticing(false);
   }, [selectedFile, setShowToolbar, setIsPracticing]);
 
-  // 4. Các hàm phối hợp logic
   const handleDeleteFile = async (name: string, e: React.MouseEvent) => {
     await deleteFile(name, e, () => {
       if (selectedFile === name) {
@@ -118,7 +107,7 @@ export function useAssistant() {
     isLoadingQuiz,
     showToolbar,
     isPracticing,
-    handleToggleToolbar, // Trả về hàm gốc thuần túy, không bọc lồng ingest ở đây nữa
+    handleToggleToolbar,
     handleStartQuiz,
     handleStopQuiz,
   };

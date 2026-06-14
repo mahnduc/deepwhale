@@ -5,7 +5,6 @@ import { TrendingUp, ChevronsUp, Info } from "lucide-react";
 import { useProfileStore } from '@/stores/profileStore';
 import Link from 'next/link';
 
-// Cấu trúc XpLog mới từ Store của bạn
 interface XpLog {
   timestamp: string;
   amount: number;
@@ -14,7 +13,6 @@ interface XpLog {
 interface HeatmapDay {
   dateKey: string;
   dayIdx: number;
-  // THAY ĐỔI: Chấp nhận cả số (bảo toàn cấu trúc cũ) hoặc mảng log chi tiết mới
   xp: number | XpLog[]; 
   dayOfMonth: number;
   formattedDate: string;
@@ -96,7 +94,6 @@ function HeatmapSection({
     (_, i) => today.getFullYear() - 2 + i
   );
 
-  // HÀM TIỆN ÍCH: Tính toán tổng lượng XP từ log hoặc số thông thường
   const getDailyTotalXp = (xpData: number | XpLog[] | undefined): number => {
     if (xpData === undefined) return 0;
     if (typeof xpData === 'number') return xpData;
@@ -199,9 +196,7 @@ function HeatmapSection({
                   );
                 }
 
-                // Tính tổng điểm trong ngày để phân cấp màu và hiển thị tooltip
                 const totalXpInDay = getDailyTotalXp(dayItem.xp);
-                // Đếm số lần cộng XP trong ngày
                 const clickCount = Array.isArray(dayItem.xp) ? dayItem.xp.length : (dayItem.xp > 0 ? 1 : 0);
 
                 return (
@@ -237,7 +232,6 @@ function LevelSection({
   const [isUpgrading, setIsUpgrading] = useState(false);
   const addXp = useProfileStore((state) => state.addXp);
 
-  // Cấu hình cho vòng tròn SVG
   const radius = 40;
   const strokeDasharray = 2 * Math.PI * radius;
   const strokeDashoffset = strokeDasharray - (progressPercentage / 100) * strokeDasharray;
@@ -247,7 +241,6 @@ function LevelSection({
     setIsUpgrading(true);
     
     try {
-      // Gọi hàm của Store mới, tự động lưu log thời gian thực
       await addXp(10); 
     } catch (error) {
       console.error("Lỗi tăng XP:", error);
@@ -260,7 +253,6 @@ function LevelSection({
     <div className="lg:col-span-3 bg-[#2D3436] text-white rounded-[24px] p-5 flex flex-col justify-between shadow-lg relative overflow-hidden group min-h-[320px] lg:min-h-0 h-full w-full">
       <div className="absolute -top-12 -right-12 w-48 h-48 bg-[#00CEC9]/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Header */}
       <div className="flex justify-between items-start z-10 shrink-0">
         <div className="flex flex-col gap-0.5">
           <span className="text-[9px] font-black tracking-widest text-[#00CEC9] uppercase bg-[#00CEC9]/10 px-2 py-0.5 rounded-md w-fit">
@@ -269,7 +261,6 @@ function LevelSection({
         </div>
       </div>
 
-      {/* Vòng Tròn Tiến Độ Trung Tâm */}
       <div className="flex-1 flex flex-col items-center justify-center my-4 z-10 relative">
         <div className="relative w-28 h-28 flex items-center justify-center">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
@@ -321,7 +312,6 @@ function LevelSection({
           {isUpgrading ? "Đang xử lý..." : "Nhấn để up cấp"}
         </button> */}
 
-        {/* Footer */}
         <div className="flex items-center justify-between text-[10px]">
           <div className="flex items-center gap-1 font-bold text-[#00CEC9]">
             <Link href="">

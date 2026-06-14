@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
-import { Telescope, TrendingUpDown } from 'lucide-react'; 
+import { Telescope } from 'lucide-react'; 
 import ContentWindow from './ContentWindow';
 
 export default function FloatingWindow() {

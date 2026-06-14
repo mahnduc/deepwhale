@@ -94,15 +94,29 @@ export default function HistoryPracticeWindow() {
     }
   };
 
+  const handleDeleteQuiz = async (quiz: QuizFileItem) => {
+    try {
+      const root = await navigator.storage.getDirectory();
+      const historyDir = await root.getDirectoryHandle('history_quiz', { create: false });
+      
+      await historyDir.removeEntry(quiz.fileName);
+
+      setQuizzes((prev) => prev.filter((q) => q.fileName !== quiz.fileName));
+    } catch (err) {
+      console.error("Lỗi khi xóa file lịch sử từ OPFS:", err);
+      alert("Đã xảy ra lỗi khi cố gắng xóa file lịch sử.");
+    }
+  };
+
   if (loading || error) {
     return <QuizLoader loading={loading} error={error} />;
   }
 
   return (
     <div className="w-full h-full flex flex-col bg-white font-sans antialiased text-slate-600 selection:bg-emerald-100 selection:text-emerald-900">
-      <div className="flex-1 w-full h-full p-6 overflow-auto custom-scrollbar animate-in fade-in duration-300">
+      <div className="flex-1 w-full h-full overflow-auto custom-scrollbar animate-in fade-in duration-300">
         {selectedQuiz ? (
-          <div className="w-full bg-white p-2 animate-in slide-in-from-right-4 duration-200">
+          <div className="w-full bg-white p-4 animate-in slide-in-from-right-4 duration-200">
             <QuizDetailChart
               quizTitle={selectedQuiz.quizFileName.replace('.json', '')}
               chartData={chartData}
@@ -110,8 +124,12 @@ export default function HistoryPracticeWindow() {
             />
           </div>
         ) : quizzes.length > 0 ? (
-          <div className="w-full bg-white p-2 animate-in slide-in-from-left-4 duration-200">
-            <QuizList quizzes={quizzes} onSelectQuiz={handleSelectQuiz} />
+          <div className="w-full h-full bg-white animate-in slide-in-from-left-4 duration-200">
+            <QuizList 
+              quizzes={quizzes} 
+              onSelectQuiz={handleSelectQuiz} 
+              onDeleteQuiz={handleDeleteQuiz} 
+            />
           </div>
         ) : (
           <div className="h-full flex flex-col items-center justify-center py-16 text-center animate-in zoom-in-95 duration-200">

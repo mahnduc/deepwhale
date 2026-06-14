@@ -14,7 +14,7 @@ interface QuizSummaryCardProps {
 
 export function QuizSummaryCard({
   quizData,
-  selectedFile, // Đã map đúng property nhận từ Page vào component
+  selectedFile,
   showToolbar,
   handleToggleToolbar,
   handleStartQuiz,

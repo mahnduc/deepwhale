@@ -90,6 +90,7 @@ QUY TẮC PHẢN HỒI NHIÊM NGẶT (BẮT BUỘC):
    * Điều phối API Groq xử lý sinh câu trả lời RAG dựa trên ngữ cảnh được trích xuất
    */
   async generateAnswer(question: string, contextChunks: SearchResult[], apiKey: string): Promise<string> {
+    
     if (!apiKey) {
       throw new Error("Thiếu Groq API Key. Vui lòng cấu hình API Key để nhận câu trả lời tổng hợp.");
     }

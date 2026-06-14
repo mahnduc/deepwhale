@@ -37,7 +37,6 @@ export default function NoteWindow() {
   const tagsInNote = extractTags(note);
   const wordCount = countWords(note);
 
-  // Animation Pulse Loop
   useEffect(() => {
     const updatePulse = () => {
       pulseGlobalTime.current += 0.04;
@@ -49,7 +48,6 @@ export default function NoteWindow() {
     return () => cancelAnimationFrame(animationFrameRef.current);
   }, [viewMode]);
 
-  // D3 Forces Physics Settings
   useEffect(() => {
     if (viewMode === 'graph' && graphRef.current) {
       const fg = graphRef.current;

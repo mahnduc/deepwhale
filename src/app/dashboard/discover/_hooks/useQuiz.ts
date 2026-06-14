@@ -9,7 +9,6 @@ export function useQuiz() {
   const [showToolbar, setShowToolbar] = useState(false);
   const [isPracticing, setIsPracticing] = useState(false);
 
-  // Hàm load bộ đề được gọi tường minh từ Orchestrator hoặc UI
   const loadQuizFromOPFS = useCallback(async (cleanFolderName: string) => {
     if (!cleanFolderName) {
       setQuizData(null);
