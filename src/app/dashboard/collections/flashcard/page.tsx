@@ -35,7 +35,7 @@ export default function FlashCard({ initialCollection = "" }: FlashCardProps) {
       try {
         setIsLoading(true);
         const root = await navigator.storage.getDirectory();
-        const dirHandle = await root.getDirectoryHandle("system-collections", {
+        const dirHandle = await root.getDirectoryHandle("vocabulary-list", {
           create: true,
         });
 
@@ -74,7 +74,7 @@ export default function FlashCard({ initialCollection = "" }: FlashCardProps) {
       try {
         setIsLoading(true);
         const root = await navigator.storage.getDirectory();
-        const dirHandle = await root.getDirectoryHandle("system-collections");
+        const dirHandle = await root.getDirectoryHandle("vocabulary-list");
         const fileHandle = await dirHandle.getFileHandle(`${selectedCollection}.json`);
         
         const file = await fileHandle.getFile();

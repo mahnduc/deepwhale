@@ -23,8 +23,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="vi" className={`${robotoMono.variable} dark`}>
       <body className="antialiased font-mono">
           <EventEmitterInitializer />
-           <LearningCoachPopup />
-           <FloatingWindow />
+          <LearningCoachPopup />
+          <FloatingWindow />
           {children}
       </body>
     </html>

@@ -217,7 +217,6 @@ export default function LibraryPage() {
       {!isLoadingTotal && (
         <div className="flex flex-col gap-12">
           
-          {/* PHÂN ĐOẠN 1: BỘ SƯU TẬP TỪ VỰNG CÁ NHÂN */}
           <div className="flex flex-col gap-6 animate-in slide-in-from-bottom-3 duration-500">
             {/* Header phân đoạn */}
             <div className="flex items-center justify-between border-b-2 border-slate-200/60 pb-4 px-1">

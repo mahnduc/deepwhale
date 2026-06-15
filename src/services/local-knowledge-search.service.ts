@@ -26,9 +26,6 @@ function cleanTextContent(text: string): string {
 }
 
 export const LocalKnowledgeSearchService = {
-  /**
-   * Thực thi tìm kiếm bằng từ khóa BM25 từ bộ nhớ OPFS
-   */
   async search(folderName: string, query: string): Promise<SearchResult[]> {
     const chunks = await readJsonFromOPFS<StoredChunk[]>(folderName, "chunks.json");
     const bm25IndexData = await readJsonFromOPFS<any>(folderName, "bm25_index.json");
@@ -51,9 +48,7 @@ export const LocalKnowledgeSearchService = {
       .filter((item): item is SearchResult => item.chunk !== undefined);
   },
 
-  /**
-   * Tạo chuỗi Context Markdown cực sạch để tiêm trực tiếp vào LLM Prompt
-   */
+
   formatContextForLLM(results: SearchResult[]): string {
     if (!results || results.length === 0) {
       return "Không tìm thấy dữ liệu liên quan trực tiếp trong bộ tri thức cục bộ.";
@@ -86,9 +81,7 @@ QUY TẮC PHẢN HỒI NHIÊM NGẶT (BẮT BUỘC):
 5. **NGÔN NGỮ**: Trả lời một cách rõ ràng, mạch lạc bằng ngôn ngữ trùng với ngôn ngữ câu hỏi của người dùng.`;
   },
 
-  /**
-   * Điều phối API Groq xử lý sinh câu trả lời RAG dựa trên ngữ cảnh được trích xuất
-   */
+
   async generateAnswer(question: string, contextChunks: SearchResult[], apiKey: string): Promise<string> {
     
     if (!apiKey) {
@@ -116,7 +109,7 @@ QUY TẮC PHẢN HỒI NHIÊM NGẶT (BẮT BUỘC):
           { role: "user", content: question }
         ],
         temperature: 0.3,
-        max_tokens: 500
+        max_tokens: 400
     })
     });
 

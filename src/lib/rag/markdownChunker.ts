@@ -49,7 +49,7 @@ class MarkdownChunker {
     this.chunkOverlap = chunkOverlap;
     this.minChunkSize = minChunkSize;
 
-    // Khởi tạo splitter với separators tôn trọng cấu trúc Markdown
+    // Khởi tạo splitter với separators cấu trúc Markdown
     this.textSplitter = new RecursiveCharacterTextSplitter({
       chunkSize: this.chunkSize,
       chunkOverlap: this.chunkOverlap,

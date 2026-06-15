@@ -4,7 +4,6 @@ import { Sparkles, CheckCircle2, BookOpen, Clock, Target } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-// --- INTERFACES ĐỒNG BỘ CHÍNH XÁC 100% VỚI PAYLOAD CỦA AGENT ---
 interface TimetableTask {
   day: string;
   durationMinutes: number;
@@ -31,7 +30,7 @@ export default function TimeTable() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Quét danh sách các file cấu hình trong thư mục "timetable" của OPFS
+  // Quét danh sách các file cấu hình trong thư mục "timetable" của OPFS
   useEffect(() => {
     async function loadFileList() {
       if (typeof navigator === "undefined" || !navigator.storage) {
@@ -59,7 +58,7 @@ export default function TimeTable() {
     loadFileList();
   }, []);
 
-  // 2. Đọc nội dung JSON và bóc tách từ trường 'timetableData'
+  // Đọc nội dung JSON và bóc tách từ trường 'timetableData'
   useEffect(() => {
     async function fetchTimetableContent() {
       if (!selectedFilename) {
@@ -148,7 +147,7 @@ export default function TimeTable() {
 
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-sm font-medium">
-          ⚠️ {error}
+          {error}
         </div>
       )}
 
@@ -169,7 +168,6 @@ export default function TimeTable() {
             Vui lòng chọn một lịch ôn tập ở hộp menu phía trên để hiển thị chi tiết các bước sửa lỗi.
           </p>
           <div className="mt-6">
-            {/* THAY THẾ LINK THÀNH BUTTON PHÁT SỰ KIỆN TOÀN CỤC */}
             <button 
               type="button"
               onClick={() => {

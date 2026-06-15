@@ -32,7 +32,7 @@ export default function LearningCoachPopup() {
   if (!visible || !isImgLoaded) return null;
 
   return (
-    <div className="fixed inset-0 z-[999999]">
+    <div className="fixed inset-0 z-999999">
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={() => setVisible(false)}

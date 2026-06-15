@@ -5,7 +5,7 @@ import { AgentContextManager } from "./context";
 
 interface OrchestratorInput {
   message: string;
-  agent: IAgent; // Nhận interface chung, lỏng lẻo (Loosely Coupled)
+  agent: IAgent;
   session: AgentSession;
 }
 

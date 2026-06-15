@@ -98,7 +98,7 @@ export default function QuizPracticeScreen({ quizData, onBack }: QuizPracticeScr
       duration,
       accuracy,
     };
-    console.log(attemptResult)
+    console.log("[floatingchat/quiz/QuizPracticeScreen] Bạn nhận được thêm 15xp", attemptResult)
     await appEmitter.emit('LEARNING_HABIT', JSON.stringify(attemptResult));
     await useProfileStore.getState().addXp(15);
     await saveAttemptToOPFS(quizData.knowledgeBase, attemptResult);

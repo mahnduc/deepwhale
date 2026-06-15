@@ -157,14 +157,6 @@ ${query}
     const uniqueTerms = [...new Set(mergedTerms)];
     const expandedQuery = uniqueTerms.join(" ");
 
-    console.log("Original Query      :", query);
-    console.log("Corrected Query     :", correctedQuery);
-    console.log("Resolved Entity     :", resolvedEntity);
-    console.log("Brainstorm          :", brainstorm);
-    console.log("Vietnamese Keywords :", vietnameseKeywords);
-    console.log("English Keywords    :", englishKeywords);
-    console.log("Expanded Query      :", expandedQuery);
-
     return expandedQuery;
   } catch (error) {
     console.error("Lỗi query expansion, fallback về query gốc:", error);

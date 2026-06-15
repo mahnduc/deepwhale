@@ -47,7 +47,7 @@ class BM25Search {
     const combinedText = `${lowerText} ${this.removeAccents(lowerText)}`;
 
     return combinedText
-      .replace(/[^\w\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/g, " ")
+      .replace(/[^\w\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/g, " ") // loại bỏ dấu
       .split(/\s+/)
       .filter((token) => token.length > 1 && !this.stopWords.has(token));
   }
@@ -143,58 +143,6 @@ class BM25Search {
       chunk: item.doc.chunk,
       score: item.score,
     }));
-  }
-
-  searchWithFilter(
-    query: string,
-    filters: {
-      contentType?: ("text" | "code" | "table" | "list")[];
-      headings?: string[];
-      minTokens?: number;
-      maxTokens?: number;
-    },
-    topK: number = 5
-  ): SearchResult[] {
-    if (this.documents.length === 0) return [];
-
-    let filteredDocs = this.documents;
-
-    if (filters.contentType && filters.contentType.length > 0) {
-      filteredDocs = filteredDocs.filter((doc) =>
-        filters.contentType!.includes(doc.chunk.metadata.contentType)
-      );
-    }
-
-    if (filters.headings && filters.headings.length > 0) {
-      filteredDocs = filteredDocs.filter((doc) =>
-        filters.headings!.some((heading) =>
-          doc.chunk.metadata.headings.some((h) =>
-            h.toLowerCase().includes(heading.toLowerCase())
-          )
-        )
-      );
-    }
-
-    if (filters.minTokens !== undefined) {
-      filteredDocs = filteredDocs.filter(
-        (doc) => doc.chunk.tokenCount >= filters.minTokens!
-      );
-    }
-
-    if (filters.maxTokens !== undefined) {
-      filteredDocs = filteredDocs.filter(
-        (doc) => doc.chunk.tokenCount <= filters.maxTokens!
-      );
-    }
-
-    const originalDocs = this.documents;
-    this.documents = filteredDocs;
-
-    const results = this.BM25Search(query, topK);
-
-    this.documents = originalDocs;
-
-    return results;
   }
 
   getStats() {
